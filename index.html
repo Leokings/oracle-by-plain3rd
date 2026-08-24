@@ -10,7 +10,7 @@
     <title>Oracle by Plain3rd — Decisions powered by GenLayer</title>
     <meta
       name="description"
-      content="Oracle by Plain3rd combines evidence-backed truth resolution and executable DAO governance in one GenLayer product."
+      content="Oracle by Plain3rd checks sourced questions and reviews proposals against shared rules on GenLayer StudioNet."
     />
     <link
       rel="icon"
@@ -38,8 +38,8 @@
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#ask">Ask</a>
         <a href="#govern">Govern</a>
-        <a href="#registry">Registry</a>
-        <a href="how-it-works.html">How it works</a>
+        <a href="#registry">Decisions</a>
+        <a href="how-it-works.html">Guide</a>
       </nav>
       <div class="wallet-actions">
         <span class="network-pill" id="network-status" role="status">
@@ -58,15 +58,14 @@
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow">ONE INTERFACE · TWO CONSENSUS ENGINES · STUDIONET</p>
-          <h1 id="hero-title">Ask what is true.<br /><span>Decide what happens next.</span></h1>
+          <p class="eyebrow">PUBLIC TESTNET · GENLAYER STUDIONET</p>
+          <h1 id="hero-title">Check evidence.<br /><span>Review proposals.</span></h1>
           <p class="hero-lede">
-            Oracle by Plain3rd brings evidence-backed questions and constitutional governance into one
-            decision layer. A single wallet moves from source verification to community action.
+            Anyone can browse. Connect a StudioNet wallet to submit, resolve, review, or vote.
           </p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#ask">Ask the Oracle</a>
-            <a class="button button-secondary" href="#govern">Open governance</a>
+            <a class="button button-primary" href="#ask">Ask a question</a>
+            <a class="button button-secondary" href="#govern">Review proposals</a>
           </div>
         </div>
         <div class="hero-orbit" aria-hidden="true">
@@ -89,8 +88,8 @@
         <div class="transaction-activity-head">
           <div>
             <p class="eyebrow">SAVED WALLET ACTIVITY</p>
-            <h2 id="transaction-title">Wallet transaction activity</h2>
-            <p>Transaction hashes stay in this browser, so a refresh cannot lose a validator review.</p>
+            <h2 id="transaction-title">Transactions</h2>
+            <p>Saved in this browser.</p>
           </div>
           <div class="transaction-actions">
             <button class="button button-quiet button-small" id="refresh-transactions" type="button">Refresh status</button>
@@ -103,9 +102,9 @@
       <section class="workspace workspace-truth" id="ask" aria-labelledby="ask-title">
         <div class="section-heading">
           <div>
-            <p class="eyebrow eyebrow-cyan">EVIDENCE ORACLE</p>
-            <h2 id="ask-title">Ask a resolvable question</h2>
-            <p>Validators fetch public sources, apply your exact rule, and settle a reusable answer.</p>
+            <p class="eyebrow eyebrow-cyan">EVIDENCE</p>
+            <h2 id="ask-title">Ask a question</h2>
+            <p>Set the question, decision rule, and public sources.</p>
           </div>
           <button class="button button-quiet" id="refresh-truth" type="button">Refresh questions</button>
         </div>
@@ -129,7 +128,7 @@
                 required
                 placeholder="Define exactly what evidence produces YES, NO, or UNCLEAR."
               ></textarea>
-              <small>Be precise. This rule—not the question title—controls the verdict.</small>
+              <small>This rule controls the verdict.</small>
             </div>
             <div class="field">
               <label for="q-resolve-after">Do not resolve before <span>(optional)</span></label>
@@ -141,7 +140,7 @@
                 <button class="text-button" id="add-source" type="button">+ Add source</button>
               </div>
               <div id="source-inputs"></div>
-              <small>One to five public URLs. Private, local, credentialed and non-HTTPS targets are rejected.</small>
+              <small>Add one to five public HTTPS URLs.</small>
             </div>
             <p class="form-error" id="truth-error" role="alert"></p>
             <button class="button button-primary button-full" id="truth-submit" type="submit">
@@ -150,7 +149,7 @@
           </form>
 
           <div class="record-panel">
-            <div class="panel-kicker"><span class="live-dot"></span> Latest evidence decisions</div>
+            <div class="panel-kicker"><span class="live-dot"></span> Latest answers</div>
             <div class="card-list" id="truth-feed" aria-live="polite">
               <div class="loading-card">Loading TruthFeed from StudioNet…</div>
             </div>
@@ -165,9 +164,9 @@
       <section class="workspace workspace-govern" id="govern" aria-labelledby="govern-title">
         <div class="section-heading">
           <div>
-            <p class="eyebrow eyebrow-gold">GOVERNANCE ORACLE</p>
-            <h2 id="govern-title">Turn rules into decisions</h2>
-            <p>Submit against the live charter, run a validator review, then open or join a ballot.</p>
+            <p class="eyebrow eyebrow-gold">GOVERNANCE</p>
+            <h2 id="govern-title">Review a proposal</h2>
+            <p>Submit, check against the charter, or vote in an open ballot.</p>
           </div>
           <button class="button button-quiet" id="refresh-governance" type="button">Refresh governance</button>
         </div>
@@ -177,7 +176,10 @@
             <span class="panel-label">CURRENT CHARTER</span>
             <span class="version-chip" id="charter-version">version —</span>
           </div>
-          <ol id="charter-list"><li>Loading the constitution from StudioNet…</li></ol>
+          <details>
+            <summary>View governing rules</summary>
+            <ol id="charter-list"><li>Loading charter…</li></ol>
+          </details>
         </div>
 
         <div class="workspace-grid governance-grid">
@@ -201,8 +203,7 @@
               ></textarea>
             </div>
             <div class="explain-box">
-              Submission records the proposal. Anyone may then run its constitutional review.
-              Only the contract owner can open a ballot; every wallet gets one vote.
+              Anyone can submit or review. The owner opens ballots. One wallet, one vote.
             </div>
             <p class="form-error" id="governance-error" role="alert"></p>
             <button class="button button-gold button-full" id="governance-submit" type="submit">
@@ -211,30 +212,21 @@
           </form>
 
           <div class="record-panel">
-            <div class="panel-kicker"><span class="live-dot live-dot-gold"></span> Constitutional record</div>
+            <div class="panel-kicker"><span class="live-dot live-dot-gold"></span> Proposal decisions</div>
             <div class="card-list" id="proposal-list" aria-live="polite">
               <div class="loading-card">Loading LivingConstitution from StudioNet…</div>
             </div>
           </div>
         </div>
 
-        <div class="operator-note">
-          <div>
-            <strong>One public product boundary</strong>
-            <p>Oracle keeps reviewers inside one product instead of routing to retired standalone interfaces. Owner-only charter and ownership operations remain contract-level controls, documented separately from public decision actions.</p>
-          </div>
-          <div>
-            <a href="how-it-works.html#contracts">Review deployment boundaries →</a>
-          </div>
-        </div>
       </section>
 
       <section class="workspace registry-workspace" id="registry" aria-labelledby="registry-title">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">SHARED DECISION INDEX</p>
-            <h2 id="registry-title">One record across both engines</h2>
-            <p>The registry improves discovery and finality tracking; each GenLayer contract remains authoritative.</p>
+            <p class="eyebrow">DECISIONS</p>
+            <h2 id="registry-title">Search every decision</h2>
+            <p>Questions and proposals in one place.</p>
           </div>
           <button class="button button-quiet" id="refresh-registry" type="button">Sync registry</button>
         </div>
@@ -255,8 +247,7 @@
         </div>
         <div class="registry-list" id="registry-list" aria-live="polite"></div>
         <p class="registry-note">
-          StudioNet currently exposes application-level rechecks rather than native bonded appeals.
-          Recheck history and protocol transaction finality are shown separately.
+          Rechecks and transaction finality are shown separately.
         </p>
       </section>
     </main>
@@ -264,10 +255,10 @@
     <footer>
       <div>
         <span class="brand brand-footer"><span class="brand-mark" aria-hidden="true"><span></span></span><strong>Oracle by Plain3rd</strong></span>
-        <p>A Plain3rd product. Truth and governance, resolved by GenLayer consensus.</p>
+        <p>Evidence and governance on GenLayer.</p>
       </div>
       <div class="footer-links">
-        <a href="how-it-works.html">How it works</a>
+        <a href="how-it-works.html">Guide</a>
         <a href="https://genlayer.com" target="_blank" rel="noreferrer">GenLayer</a>
         <button id="copy-contracts" type="button">Copy contract addresses</button>
       </div>

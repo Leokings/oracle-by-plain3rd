@@ -713,13 +713,19 @@ function renderQuestions() {
     head.append(titleBlock, textElement("span", `badge badge-${status}`, status));
     card.append(head);
 
+    const decisionDetails = document.createElement("details");
+    decisionDetails.className = "history";
+    decisionDetails.appendChild(textElement("summary", "", question.outcome ? "View evidence and reasoning" : "View rule and evidence"));
+    let hasDecisionDetails = false;
+
     if (question.criteria) {
-      card.append(textElement("p", "card-label", "Resolution rule"));
-      card.append(textElement("p", "card-copy", question.criteria));
+      decisionDetails.append(textElement("p", "card-label", "Resolution rule"));
+      decisionDetails.append(textElement("p", "card-copy", question.criteria));
+      hasDecisionDetails = true;
     }
 
     if (question.sources.length) {
-      card.append(textElement("p", "card-label", "Evidence"));
+      decisionDetails.append(textElement("p", "card-label", "Evidence"));
       const list = document.createElement("ol");
       list.className = "source-list";
       question.sources.forEach((source) => {
@@ -732,7 +738,8 @@ function renderQuestions() {
         item.appendChild(link);
         list.appendChild(item);
       });
-      card.appendChild(list);
+      decisionDetails.appendChild(list);
+      hasDecisionDetails = true;
     }
 
     if (question.outcome) {
@@ -740,14 +747,14 @@ function renderQuestions() {
       const citationText = question.citations.length ? ` · sources ${question.citations.join(", ")}` : "";
       card.append(textElement("p", "card-copy", `${question.outcome.toUpperCase()}${citationText}`));
       if (question.reasoning) {
-        card.append(textElement("p", "rationale", `Leader rationale · not authoritative: ${question.reasoning}`));
+        decisionDetails.append(textElement("p", "card-label", "AI rationale · context only"));
+        decisionDetails.append(textElement("p", "rationale", question.reasoning));
+        hasDecisionDetails = true;
       }
     }
 
     if (question.history.length) {
-      const details = document.createElement("details");
-      details.className = "history";
-      details.appendChild(textElement("summary", "", `${question.history.length} preserved resolution round${question.history.length === 1 ? "" : "s"}`));
+      decisionDetails.append(textElement("p", "card-label", "Decision history"));
       const historyList = document.createElement("ol");
       question.history.forEach((round) => {
         historyList.appendChild(
@@ -758,9 +765,10 @@ function renderQuestions() {
           ),
         );
       });
-      details.appendChild(historyList);
-      card.appendChild(details);
+      decisionDetails.appendChild(historyList);
+      hasDecisionDetails = true;
     }
+    if (hasDecisionDetails) card.appendChild(decisionDetails);
 
     appendFinality(card, TRUTH_KIND, question.id);
     const actions = document.createElement("div");
@@ -843,23 +851,28 @@ function renderProposals() {
       proposal.rule_refs.forEach((ref) => refs.appendChild(textElement("li", "", ref)));
       card.appendChild(refs);
     }
+    const reviewDetails = document.createElement("details");
+    reviewDetails.className = "history";
+    reviewDetails.appendChild(textElement("summary", "", "View review details"));
+    let hasReviewDetails = false;
     if (proposal.analysis) {
-      card.append(textElement("p", "rationale", `Leader rationale · not authoritative: ${proposal.analysis}`));
+      reviewDetails.append(textElement("p", "card-label", "AI rationale · context only"));
+      reviewDetails.append(textElement("p", "rationale", proposal.analysis));
+      hasReviewDetails = true;
     }
 
     if (proposal.review_history.length) {
-      const details = document.createElement("details");
-      details.className = "history";
-      details.appendChild(textElement("summary", "", `${proposal.review_history.length} preserved constitutional review${proposal.review_history.length === 1 ? "" : "s"}`));
+      reviewDetails.append(textElement("p", "card-label", "Review history"));
       const historyList = document.createElement("ol");
       proposal.review_history.forEach((review) => {
         historyList.appendChild(
           textElement("li", "", `Review ${review.review || "?"}: ${String(review.verdict || "unknown").replaceAll("_", " ")} · charter v${review.constitution_version || "?"}`),
         );
       });
-      details.appendChild(historyList);
-      card.appendChild(details);
+      reviewDetails.appendChild(historyList);
+      hasReviewDetails = true;
     }
+    if (hasReviewDetails) card.appendChild(reviewDetails);
 
     const ballot = currentBallot(proposal.id);
     if (ballot) {

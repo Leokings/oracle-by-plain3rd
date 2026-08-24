@@ -41,18 +41,18 @@ StudioNet is gasless, so the fresh wallet does not need funding.
 3. Under **Ask**, post a unique question with an exact rule and a reputable
    public HTTPS page as the first evidence source.
 4. Select **Resolve with validators**. The decision should show an outcome,
-   numbered citations, separately labeled leader rationale and transaction
+   numbered citations, separately labeled AI rationale and transaction
    finality.
-   Immediately after signing, confirm **Wallet transaction activity** shows the
+   Immediately after signing, confirm **Transactions** shows the
    saved hash. Reload the page once and use **Refresh status** to confirm the
    operation is still recoverable.
-5. Confirm the new decision appears under **Registry** with its transaction
+5. Confirm the new decision appears under **Decisions** with its transaction
    finality shown separately from its review history.
 6. Under **Govern**, submit a real proposal. Select **Run constitutional review** and
    wait for validator consensus.
 7. If the contract owner opens a ballot, connect a second fresh wallet and
    verify that each wallet may vote only once.
-8. Search your records under **Registry** and confirm their finality is shown
+8. Search your records under **Decisions** and confirm their finality is shown
    separately from application-level review history.
 9. If more than twelve records exist, confirm the newest record appears first
    and **Show more** / **Load older from StudioNet** reveals prior history.
