@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://studio.genlayer.com https://livingconstitution-nine.vercel.app; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+    />
+    <title>Oracle — Decisions powered by GenLayer</title>
+    <meta
+      name="description"
+      content="Oracle combines evidence-backed truth resolution and executable DAO governance in one GenLayer product."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23080712'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%238b5cf6' stroke-width='5'/%3E%3Ccircle cx='45' cy='19' r='5' fill='%232ee7d0'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Oracle home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span>
+          <strong>Oracle</strong>
+          <small>powered by GenLayer</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#ask">Ask</a>
+        <a href="#govern">Govern</a>
+        <a href="#registry">Registry</a>
+        <a href="how-it-works.html">How it works</a>
+      </nav>
+      <div class="wallet-actions">
+        <span class="network-pill" id="network-status" role="status">
+          <span class="status-dot"></span>Connecting
+        </span>
+        <button class="button button-primary button-small" id="connect-wallet" type="button">
+          Connect wallet
+        </button>
+        <span class="wallet-chip" id="wallet-chip" hidden>
+          <span id="wallet-address"></span>
+          <button id="disconnect-wallet" type="button">Disconnect</button>
+        </span>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">ONE INTERFACE · TWO CONSENSUS ENGINES · STUDIONET</p>
+          <h1 id="hero-title">Ask what is true.<br /><span>Decide what happens next.</span></h1>
+          <p class="hero-lede">
+            Oracle brings evidence-backed questions and constitutional governance into one
+            decision layer. A single wallet moves from source verification to community action.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#ask">Ask the Oracle</a>
+            <a class="button button-secondary" href="#govern">Open governance</a>
+          </div>
+        </div>
+        <div class="hero-orbit" aria-hidden="true">
+          <div class="orbit orbit-outer"></div>
+          <div class="orbit orbit-inner"></div>
+          <div class="orbit-core">O</div>
+          <div class="orbit-node orbit-truth"><span>Truth</span></div>
+          <div class="orbit-node orbit-govern"><span>Govern</span></div>
+        </div>
+      </section>
+
+      <section class="system-strip" aria-label="Oracle live statistics">
+        <div><strong id="truth-count">—</strong><span>questions</span></div>
+        <div><strong id="proposal-count">—</strong><span>proposals</span></div>
+        <div><strong id="final-count">—</strong><span>final decisions</span></div>
+        <div><strong>61999</strong><span>StudioNet chain</span></div>
+      </section>
+
+      <section class="workspace workspace-truth" id="ask" aria-labelledby="ask-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow eyebrow-cyan">EVIDENCE ORACLE</p>
+            <h2 id="ask-title">Ask a resolvable question</h2>
+            <p>Validators fetch public sources, apply your exact rule, and settle a reusable answer.</p>
+          </div>
+          <button class="button button-quiet" id="refresh-truth" type="button">Refresh questions</button>
+        </div>
+
+        <div class="workspace-grid">
+          <form class="form-panel" id="truth-form">
+            <div class="field">
+              <label for="q-text">Question</label>
+              <textarea
+                id="q-text"
+                maxlength="1000"
+                required
+                placeholder="Does the source page identify itself as Example Domain?"
+              ></textarea>
+            </div>
+            <div class="field">
+              <label for="q-criteria">Resolution rule</label>
+              <textarea
+                id="q-criteria"
+                maxlength="2000"
+                required
+                placeholder="YES only if the visible page identifies itself as Example Domain; NO if it does not; UNCLEAR only if unavailable."
+              ></textarea>
+              <small>Be precise. This rule—not the question title—controls the verdict.</small>
+            </div>
+            <div class="field">
+              <label for="q-resolve-after">Do not resolve before <span>(optional)</span></label>
+              <input id="q-resolve-after" type="datetime-local" />
+            </div>
+            <div class="field">
+              <div class="label-row">
+                <label>Public HTTPS evidence</label>
+                <button class="text-button" id="add-source" type="button">+ Add source</button>
+              </div>
+              <div id="source-inputs"></div>
+              <small>One to five public URLs. Private, local, credentialed and non-HTTPS targets are rejected.</small>
+            </div>
+            <p class="form-error" id="truth-error" role="alert"></p>
+            <button class="button button-primary button-full" id="truth-submit" type="submit">
+              Post question on-chain
+            </button>
+          </form>
+
+          <div class="record-panel">
+            <div class="panel-kicker"><span class="live-dot"></span> Latest evidence decisions</div>
+            <div class="card-list" id="truth-feed" aria-live="polite">
+              <div class="loading-card">Loading TruthFeed from StudioNet…</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bridge" aria-label="Decision flow">
+        <span>Evidence</span><i></i><span>Consensus</span><i></i><span>Governance</span><i></i><span>Action</span>
+      </section>
+
+      <section class="workspace workspace-govern" id="govern" aria-labelledby="govern-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow eyebrow-gold">GOVERNANCE ORACLE</p>
+            <h2 id="govern-title">Turn rules into decisions</h2>
+            <p>Submit against the live charter, run a validator review, then open or join a ballot.</p>
+          </div>
+          <button class="button button-quiet" id="refresh-governance" type="button">Refresh governance</button>
+        </div>
+
+        <div class="charter-panel">
+          <div>
+            <span class="panel-label">CURRENT CHARTER</span>
+            <span class="version-chip" id="charter-version">version —</span>
+          </div>
+          <ol id="charter-list"><li>Loading the constitution from StudioNet…</li></ol>
+        </div>
+
+        <div class="workspace-grid governance-grid">
+          <form class="form-panel" id="proposal-form">
+            <div class="field">
+              <label for="proposal-title">Proposal title</label>
+              <input
+                id="proposal-title"
+                maxlength="120"
+                required
+                placeholder="Open-source documentation grant"
+              />
+            </div>
+            <div class="field">
+              <label for="proposal-body">Proposal</label>
+              <textarea
+                id="proposal-body"
+                maxlength="2000"
+                required
+                placeholder="State the action, amount, beneficiaries, safeguards and reporting commitment."
+              ></textarea>
+            </div>
+            <div class="explain-box">
+              Submission records the proposal. Anyone may then run its constitutional review.
+              Only the contract owner can open a ballot; every wallet gets one vote.
+            </div>
+            <p class="form-error" id="governance-error" role="alert"></p>
+            <button class="button button-gold button-full" id="governance-submit" type="submit">
+              Submit proposal on-chain
+            </button>
+          </form>
+
+          <div class="record-panel">
+            <div class="panel-kicker"><span class="live-dot live-dot-gold"></span> Constitutional record</div>
+            <div class="card-list" id="proposal-list" aria-live="polite">
+              <div class="loading-card">Loading LivingConstitution from StudioNet…</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="operator-note">
+          <div>
+            <strong>Advanced operator controls</strong>
+            <p>Charter amendments and two-step ownership transfers remain isolated in the audited contract consoles.</p>
+          </div>
+          <div>
+            <a href="https://livingconstitution-nine.vercel.app" target="_blank" rel="noreferrer">Governance console ↗</a>
+            <a href="https://truthfeed-neon.vercel.app" target="_blank" rel="noreferrer">Evidence console ↗</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace registry-workspace" id="registry" aria-labelledby="registry-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">SHARED DECISION INDEX</p>
+            <h2 id="registry-title">One record across both engines</h2>
+            <p>The registry improves discovery and finality tracking; each GenLayer contract remains authoritative.</p>
+          </div>
+          <button class="button button-quiet" id="refresh-registry" type="button">Sync registry</button>
+        </div>
+        <div class="registry-controls">
+          <label>
+            <span>Search</span>
+            <input id="registry-search" type="search" placeholder="Question, proposal, case ID, decision…" />
+          </label>
+          <label>
+            <span>Source</span>
+            <select id="registry-source">
+              <option value="all">Both engines</option>
+              <option value="TruthFeed">Evidence decisions</option>
+              <option value="LivingConstitution">Governance decisions</option>
+            </select>
+          </label>
+          <div class="registry-count" id="registry-count">Loading registry…</div>
+        </div>
+        <div class="registry-list" id="registry-list" aria-live="polite"></div>
+        <p class="registry-note">
+          StudioNet currently exposes application-level rechecks rather than native bonded appeals.
+          Recheck history and protocol transaction finality are shown separately.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        <span class="brand brand-footer"><span class="brand-mark" aria-hidden="true"><span></span></span><strong>Oracle</strong></span>
+        <p>Truth and governance, resolved by GenLayer consensus.</p>
+      </div>
+      <div class="footer-links">
+        <a href="how-it-works.html">How it works</a>
+        <a href="https://genlayer.com" target="_blank" rel="noreferrer">GenLayer</a>
+        <button id="copy-contracts" type="button">Copy contract addresses</button>
+      </div>
+    </footer>
+
+    <div class="toast-root" id="toast-root" aria-live="polite"></div>
+    <script src="config.js"></script>
+    <script type="module" src="app.bundle.js"></script>
+  </body>
+</html>
