@@ -24,6 +24,23 @@ test("supports snake_case SDK receipt fields", () => {
   );
 });
 
+test("accepts raw Studio SUCCESS and ERROR execution aliases", () => {
+  assert.equal(
+    receiptFailure({
+      status_name: "ACCEPTED",
+      consensus_data: { leader_receipt: [{ execution_result: "SUCCESS" }] },
+    }),
+    null,
+  );
+  assert.match(
+    receiptFailure({
+      status_name: "ACCEPTED",
+      consensus_data: { leader_receipt: [{ execution_result: "ERROR", error: "revert" }] },
+    }),
+    /failed/i,
+  );
+});
+
 test("does not confuse consensus acceptance with execution success", () => {
   const receipt = {
     status: 5,

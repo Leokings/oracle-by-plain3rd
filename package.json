@@ -7,9 +7,12 @@
   "scripts": {
     "build": "node build.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "npm run test && npm run build"
+    "check": "npm run test && npm run build",
+    "smoke:studionet": "node scripts/studionet-release-smoke.mjs"
   },
   "dependencies": {
+    "@vercel/analytics": "2.0.1",
+    "@vercel/speed-insights": "2.0.0",
     "viem": "2.55.19"
   },
   "devDependencies": {

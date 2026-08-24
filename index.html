@@ -85,6 +85,21 @@
         <div><strong>61999</strong><span>StudioNet chain</span></div>
       </section>
 
+      <section class="transaction-activity" id="transaction-activity" aria-labelledby="transaction-title" hidden>
+        <div class="transaction-activity-head">
+          <div>
+            <p class="eyebrow">SAVED WALLET ACTIVITY</p>
+            <h2 id="transaction-title">Wallet transaction activity</h2>
+            <p>Transaction hashes stay in this browser, so a refresh cannot lose a validator review.</p>
+          </div>
+          <div class="transaction-actions">
+            <button class="button button-quiet button-small" id="refresh-transactions" type="button">Refresh status</button>
+            <button class="text-button" id="dismiss-transactions" type="button">Dismiss completed</button>
+          </div>
+        </div>
+        <div class="transaction-list" id="transaction-list" aria-live="polite"></div>
+      </section>
+
       <section class="workspace workspace-truth" id="ask" aria-labelledby="ask-title">
         <div class="section-heading">
           <div>
@@ -205,12 +220,11 @@
 
         <div class="operator-note">
           <div>
-            <strong>Advanced operator controls</strong>
-            <p>Charter amendments and two-step ownership transfers remain isolated in the audited contract consoles.</p>
+            <strong>One public product boundary</strong>
+            <p>Oracle keeps reviewers inside one product instead of routing to retired standalone interfaces. Owner-only charter and ownership operations remain contract-level controls, documented separately from public decision actions.</p>
           </div>
           <div>
-            <a href="https://livingconstitution-nine.vercel.app" target="_blank" rel="noreferrer">Governance console ↗</a>
-            <a href="https://truthfeed-neon.vercel.app" target="_blank" rel="noreferrer">Evidence console ↗</a>
+            <a href="how-it-works.html#contracts">Review deployment boundaries →</a>
           </div>
         </div>
       </section>

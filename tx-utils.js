@@ -22,12 +22,22 @@ const EXECUTION_BY_NUMBER = Object.freeze({
 });
 
 const DEFAULT_SUCCESS_STATUSES = new Set(["ACCEPTED", "READY_TO_FINALIZE", "FINALIZED"]);
+const EXECUTION_ALIASES = Object.freeze({
+  SUCCESS: "FINISHED_WITH_RETURN",
+  ERROR: "FINISHED_WITH_ERROR",
+  CONTRACT_ERROR: "FINISHED_WITH_ERROR",
+});
 
 function normalizeEnum(value, numberMap) {
   if (value === undefined || value === null || value === "") return "";
   const mapped = numberMap[Number(value)];
   if (mapped && /^\d+$/.test(String(value))) return mapped;
   return String(value).trim().toUpperCase();
+}
+
+function normalizeExecution(value) {
+  const normalized = normalizeEnum(value, EXECUTION_BY_NUMBER);
+  return EXECUTION_ALIASES[normalized] || normalized;
 }
 
 export function receiptStatusName(receipt) {
@@ -43,14 +53,14 @@ export function receiptExecutionName(receipt) {
     receipt?.tx_execution_result_name ??
     receipt?.txExecutionResult ??
     receipt?.tx_execution_result;
-  const normalized = normalizeEnum(topLevel, EXECUTION_BY_NUMBER);
+  const normalized = normalizeExecution(topLevel);
   if (normalized) return normalized;
 
   const rawLeader = receipt?.consensus_data?.leader_receipt;
   const leaderReceipts = Array.isArray(rawLeader) ? rawLeader : rawLeader ? [rawLeader] : [];
   for (const leader of leaderReceipts) {
     const value = leader?.execution_result_name ?? leader?.execution_result;
-    const leaderResult = normalizeEnum(value, EXECUTION_BY_NUMBER);
+    const leaderResult = normalizeExecution(value);
     if (leaderResult) return leaderResult;
   }
   return "";
@@ -121,4 +131,3 @@ export function isConfiguredRpcUrl(value) {
     return false;
   }
 }
-

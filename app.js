@@ -1,4 +1,6 @@
 import { createClient, chains } from "genlayer-js";
+import { inject } from "@vercel/analytics";
+import { injectSpeedInsights } from "@vercel/speed-insights";
 
 import {
   LIVING_KIND,
@@ -7,7 +9,11 @@ import {
   finalityLabel,
   isPublicHttpsSource,
   isProductionRecordId,
+  latestPageWindow,
+  mergeUniqueNewest,
+  newestFirst,
   normalizePage,
+  olderPageWindow,
   shortAddress,
   splitCharter,
 } from "./product-utils.js";
@@ -37,13 +43,23 @@ const STUDIO_CHAIN_PARAMS = {
   nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
 };
 const WALLET_KEY = "oracle_wallet_v1";
+const TRANSACTION_KEY = "oracle_transactions_v1";
 const PAGE_SIZE = 50;
+const INITIAL_VISIBLE = 12;
+const VISIBLE_STEP = 12;
+const TRANSACTION_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_SOURCES = 5;
+const IS_LOCAL = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
 const CONFIGURED =
   isConfiguredRpcUrl(CONFIG.RPC_URL) &&
   isConfiguredAddress(CONFIG.LIVING_CONTRACT_ADDRESS) &&
   isConfiguredAddress(CONFIG.TRUTH_CONTRACT_ADDRESS) &&
   /^https:\/\//.test(String(CONFIG.REGISTRY_API_BASE || ""));
+
+if (!IS_LOCAL) {
+  inject({ mode: "production" });
+  injectSpeedInsights();
+}
 
 const state = {
   wallet: null,
@@ -52,8 +68,15 @@ const state = {
   constitution: "",
   constitutionVersion: 0,
   questions: [],
+  questionTotal: 0,
+  questionOffset: 0,
+  questionVisible: INITIAL_VISIBLE,
   proposals: [],
+  proposalTotal: 0,
+  proposalOffset: 0,
+  proposalVisible: INITIAL_VISIBLE,
   ballots: [],
+  ballotOffset: 0,
   registry: [],
   registryWarning: "",
 };
@@ -64,6 +87,8 @@ const readClient = CONFIGURED
 let writeClient = null;
 let writeClientAddress = "";
 let walletEventsBound = false;
+let volatileTrackedTransactions = [];
+let trackedStorageAvailable = true;
 
 const $ = (id) => document.getElementById(id);
 
@@ -85,6 +110,92 @@ function toast(type, message, timeout = 6500) {
   item.append(text, close);
   $("toast-root").appendChild(item);
   window.setTimeout(() => item.remove(), timeout);
+}
+
+function readTrackedTransactions() {
+  if (!trackedStorageAvailable) return volatileTrackedTransactions;
+  try {
+    const value = JSON.parse(localStorage.getItem(TRANSACTION_KEY) || "[]");
+    if (!Array.isArray(value)) return [];
+    const cutoff = Date.now() - TRANSACTION_RETENTION_MS;
+    volatileTrackedTransactions = value
+      .filter((item) => /^0x[0-9a-f]{64}$/i.test(String(item?.hash || "")))
+      .filter((item) => !["FINALIZED", "FAILED", "CANCELED"].includes(String(item.status || "").toUpperCase()) || Number(item.updatedAt || item.submittedAt || 0) >= cutoff)
+      .sort((left, right) => Number(right.submittedAt || 0) - Number(left.submittedAt || 0));
+    return volatileTrackedTransactions;
+  } catch {
+    trackedStorageAvailable = false;
+    return volatileTrackedTransactions;
+  }
+}
+
+function writeTrackedTransactions(items) {
+  volatileTrackedTransactions = items.slice(0, 30);
+  try {
+    localStorage.setItem(TRANSACTION_KEY, JSON.stringify(volatileTrackedTransactions));
+  } catch {
+    trackedStorageAvailable = false;
+    // Keep tracking in memory when browser privacy settings disable storage.
+  }
+  renderTransactionActivity();
+}
+
+function trackTransaction(item) {
+  const items = readTrackedTransactions().filter((existing) => existing.hash.toLowerCase() !== item.hash.toLowerCase());
+  items.unshift({
+    ...item,
+    status: String(item.status || "SUBMITTED").toUpperCase(),
+    submittedAt: Number(item.submittedAt || Date.now()),
+    updatedAt: Date.now(),
+  });
+  writeTrackedTransactions(items);
+}
+
+function updateTrackedTransaction(hash, changes) {
+  const items = readTrackedTransactions();
+  const index = items.findIndex((item) => item.hash.toLowerCase() === String(hash).toLowerCase());
+  if (index < 0) return;
+  items[index] = { ...items[index], ...changes, updatedAt: Date.now() };
+  writeTrackedTransactions(items);
+}
+
+function renderTransactionActivity() {
+  const panel = $("transaction-activity");
+  const container = $("transaction-list");
+  if (!panel || !container) return;
+  const items = readTrackedTransactions();
+  panel.hidden = items.length === 0;
+  container.replaceChildren();
+  for (const item of items) {
+    const row = document.createElement("article");
+    row.className = "transaction-item";
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.className = "text-button";
+    copy.textContent = shortAddress(item.hash);
+    copy.setAttribute("aria-label", `Copy transaction ${item.hash}`);
+    copy.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(item.hash);
+        toast("success", "Transaction hash copied.");
+      } catch {
+        toast("error", "Clipboard access was unavailable.");
+      }
+    });
+    const heading = document.createElement("div");
+    heading.className = "transaction-item-head";
+    heading.append(
+      textElement("strong", "", String(item.operation || "transaction").replaceAll("_", " ")),
+      textElement("span", `badge badge-${String(item.status || "submitted").toLowerCase()}`, String(item.status || "SUBMITTED").replaceAll("_", " ")),
+    );
+    row.append(
+      heading,
+      textElement("span", "transaction-case", item.caseId || "Unlinked decision"),
+      copy,
+    );
+    if (item.lastError) row.appendChild(textElement("p", "transaction-error", item.lastError));
+    container.appendChild(row);
+  }
 }
 
 function textElement(tag, className, value) {
@@ -262,9 +373,52 @@ async function registerTransaction(hash, kind, caseId, operation) {
       body: JSON.stringify({ hash, kind, case_id: caseId, operation }),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return true;
   } catch (error) {
     console.warn("Registry tracking failed; the contract write is unaffected:", error);
+    return false;
   }
+}
+
+async function refreshTrackedTransactions({ announce = false } = {}) {
+  if (!readClient) return;
+  const items = readTrackedTransactions().filter(
+    (item) => !["FINALIZED", "FAILED", "CANCELED"].includes(String(item.status || "").toUpperCase()),
+  );
+  let contractStateChanged = false;
+  for (const item of items) {
+    try {
+      const receipt = await readClient.getTransaction({ hash: item.hash });
+      const status = receiptStatusName(receipt) || item.status || "SUBMITTED";
+      const accepted = ["ACCEPTED", "READY_TO_FINALIZE", "FINALIZED"].includes(status);
+      if (accepted) {
+        const failure = receiptFailure(receipt);
+        if (failure) {
+          updateTrackedTransaction(item.hash, { status: "FAILED", lastError: failure });
+          continue;
+        }
+        const registered = item.registered || await registerTransaction(item.hash, item.kind, item.caseId, item.operation);
+        updateTrackedTransaction(item.hash, { status, registered, lastError: "" });
+        contractStateChanged ||= status !== item.status || !item.registered;
+        continue;
+      }
+      if (["CANCELED", "UNDETERMINED", "VALIDATORS_TIMEOUT", "LEADER_TIMEOUT"].includes(status)) {
+        updateTrackedTransaction(item.hash, {
+          status: status === "CANCELED" ? "CANCELED" : "FAILED",
+          lastError: `Consensus ended with ${status.replaceAll("_", " ").toLowerCase()}.`,
+        });
+        continue;
+      }
+      updateTrackedTransaction(item.hash, { status, lastError: "" });
+    } catch (error) {
+      updateTrackedTransaction(item.hash, { lastError: `Status check paused: ${errMsg(error)}` });
+    }
+  }
+  if (contractStateChanged) {
+    await Promise.allSettled([refreshTruth(), refreshGovernance(), refreshRegistry({ fresh: true })]);
+  }
+  renderTransactionActivity();
+  if (announce) toast("info", items.length ? "Transaction activity refreshed." : "No pending transactions to refresh.");
 }
 
 async function executeWrite({ address, kind, caseId, operation, method, args, longPoll = false }) {
@@ -281,16 +435,30 @@ async function executeWrite({ address, kind, caseId, operation, method, args, lo
 
   const client = getWriteClient(wallet.address, provider);
   const hash = await client.writeContract({ address, functionName: method, args });
-  toast("info", `Transaction ${shortAddress(hash)} submitted; waiting for validator consensus…`, 9000);
-  const receipt = await client.waitForTransactionReceipt({
-    hash,
-    status: "ACCEPTED",
-    interval: longPoll ? 4000 : 2500,
-    retries: longPoll ? 300 : 100,
-  });
+  trackTransaction({ hash, kind, caseId, operation, address, method });
+  toast("info", `Transaction ${shortAddress(hash)} submitted. Its live status is saved below.`, 10000);
+  let receipt;
+  try {
+    receipt = await client.waitForTransactionReceipt({
+      hash,
+      status: "ACCEPTED",
+      interval: longPoll ? 4000 : 2500,
+      retries: longPoll ? 300 : 100,
+    });
+  } catch (error) {
+    updateTrackedTransaction(hash, {
+      lastError: `Automatic waiting paused: ${errMsg(error)} Use Refresh status to continue tracking.`,
+    });
+    throw new Error(`The transaction remains saved below while consensus continues. ${errMsg(error)}`);
+  }
   const failure = receiptFailure(receipt);
-  if (failure) throw new Error(`${failure} Transaction ${shortAddress(hash)}.`);
-  await registerTransaction(hash, kind, caseId, operation);
+  if (failure) {
+    updateTrackedTransaction(hash, { status: "FAILED", lastError: failure });
+    throw new Error(`${failure} Transaction ${shortAddress(hash)}.`);
+  }
+  const status = receiptStatusName(receipt) || "ACCEPTED";
+  const registered = await registerTransaction(hash, kind, caseId, operation);
+  updateTrackedTransaction(hash, { status, registered, lastError: "" });
   toast("success", `${operation} accepted on-chain. Registry finality will update separately.`);
   return { hash, receipt };
 }
@@ -344,42 +512,109 @@ function normalizeBallot(raw) {
   };
 }
 
+async function readLatestPage(address, method, total, normalizer, dateField = "created_at") {
+  const window = latestPageWindow(total, PAGE_SIZE);
+  if (!window.limit) return { items: [], offset: 0, total: 0 };
+  const raw = await readContract(address, method, [window.offset, window.limit]);
+  const page = normalizePage(raw);
+  return {
+    items: newestFirst(page.items.map(normalizer), dateField),
+    offset: window.offset,
+    total: Math.max(Number(total) || 0, page.total || 0),
+  };
+}
+
 async function refreshTruth() {
-  const [rawPage, ownership] = await Promise.all([
-    readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "list_questions", [0, PAGE_SIZE]),
+  const [stats, ownership] = await Promise.all([
+    readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "get_stats"),
     readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "get_ownership_state").catch(() => ({ owner: "" })),
   ]);
-  const page = normalizePage(rawPage);
-  state.questions = page.items
-    .map(normalizeQuestion)
-    .filter((item) => isProductionRecordId(item.id));
+  const page = await readLatestPage(
+    CONFIG.TRUTH_CONTRACT_ADDRESS,
+    "list_questions",
+    Number(stats?.created || 0),
+    normalizeQuestion,
+  );
+  state.questions = page.items.filter((item) => isProductionRecordId(item.id));
+  state.questionTotal = page.total;
+  state.questionOffset = page.offset;
+  state.questionVisible = INITIAL_VISIBLE;
   state.truthOwner = String(ownership?.owner || "");
   renderQuestions();
   renderMetrics();
 }
 
 async function refreshGovernance() {
-  const [constitution, version, rawProposals, ownership, rawBallots] = await Promise.all([
+  const [constitution, version, stats, ownership] = await Promise.all([
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_constitution"),
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "constitution_version_count"),
-    readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "list_proposals", [0, PAGE_SIZE]),
+    readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_stats"),
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_ownership_state").catch(() => ({ owner: "" })),
-    readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "list_ballots", [0, PAGE_SIZE]).catch(() => ({ items: [] })),
   ]);
-  const proposalPage = normalizePage(rawProposals);
-  const ballotPage = normalizePage(rawBallots);
+  const [proposalPage, ballotPage] = await Promise.all([
+    readLatestPage(
+      CONFIG.LIVING_CONTRACT_ADDRESS,
+      "list_proposals",
+      Number(stats?.proposals_submitted || 0),
+      normalizeProposal,
+    ),
+    readLatestPage(
+      CONFIG.LIVING_CONTRACT_ADDRESS,
+      "list_ballots",
+      Number(stats?.ballots_opened || 0),
+      normalizeBallot,
+      "opened_at",
+    ).catch(() => ({ items: [], offset: 0, total: 0 })),
+  ]);
   state.constitution = String(constitution || "");
   state.constitutionVersion = Number(version || 0);
-  state.proposals = proposalPage.items
-    .map(normalizeProposal)
-    .filter((item) => isProductionRecordId(item.id));
+  state.proposals = proposalPage.items.filter((item) => isProductionRecordId(item.id));
+  state.proposalTotal = proposalPage.total;
+  state.proposalOffset = proposalPage.offset;
+  state.proposalVisible = INITIAL_VISIBLE;
   state.owner = String(ownership?.owner || "");
-  state.ballots = ballotPage.items
-    .map(normalizeBallot)
-    .filter((item) => isProductionRecordId(item.proposal_id));
+  state.ballots = ballotPage.items.filter((item) => isProductionRecordId(item.proposal_id));
+  state.ballotOffset = ballotPage.offset;
   renderCharter();
   renderProposals();
   renderMetrics();
+}
+
+async function loadOlderQuestions() {
+  const window = olderPageWindow(state.questionOffset, PAGE_SIZE);
+  if (!window.limit) return;
+  const raw = await readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "list_questions", [window.offset, window.limit]);
+  const incoming = normalizePage(raw).items
+    .map(normalizeQuestion)
+    .filter((item) => isProductionRecordId(item.id));
+  state.questions = mergeUniqueNewest(state.questions, incoming);
+  state.questionOffset = window.offset;
+  state.questionVisible += incoming.length;
+  renderQuestions();
+}
+
+async function loadOlderProposals() {
+  const proposalWindow = olderPageWindow(state.proposalOffset, PAGE_SIZE);
+  if (!proposalWindow.limit) return;
+  const ballotWindow = olderPageWindow(state.ballotOffset, PAGE_SIZE);
+  const [rawProposals, rawBallots] = await Promise.all([
+    readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "list_proposals", [proposalWindow.offset, proposalWindow.limit]),
+    ballotWindow.limit
+      ? readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "list_ballots", [ballotWindow.offset, ballotWindow.limit]).catch(() => ({ items: [] }))
+      : Promise.resolve({ items: [] }),
+  ]);
+  const incomingProposals = normalizePage(rawProposals).items
+    .map(normalizeProposal)
+    .filter((item) => isProductionRecordId(item.id));
+  const incomingBallots = normalizePage(rawBallots).items
+    .map(normalizeBallot)
+    .filter((item) => isProductionRecordId(item.proposal_id));
+  state.proposals = mergeUniqueNewest(state.proposals, incomingProposals);
+  state.ballots = mergeUniqueNewest(state.ballots, incomingBallots, "id", "opened_at");
+  state.proposalOffset = proposalWindow.offset;
+  state.ballotOffset = ballotWindow.offset;
+  state.proposalVisible += incomingProposals.length;
+  renderProposals();
 }
 
 async function refreshRegistry({ fresh = false } = {}) {
@@ -421,8 +656,8 @@ async function refreshAll({ freshRegistry = false } = {}) {
 }
 
 function renderMetrics() {
-  $("truth-count").textContent = String(state.questions.length);
-  $("proposal-count").textContent = String(state.proposals.length);
+  $("truth-count").textContent = `${state.questions.length}${state.questionOffset > 0 ? "+" : ""}`;
+  $("proposal-count").textContent = `${state.proposals.length}${state.proposalOffset > 0 ? "+" : ""}`;
   $("final-count").textContent = String(state.registry.filter((item) => item.finality?.final).length);
 }
 
@@ -442,6 +677,19 @@ function appendFinality(card, kind, caseId) {
   card.appendChild(row);
 }
 
+function appendRecordControls(container, { shown, loaded, hasOlder, showMore, loadOlder }) {
+  if (shown >= loaded && !hasOlder) return;
+  const controls = document.createElement("div");
+  controls.className = "record-controls";
+  controls.appendChild(textElement("span", "", `Showing ${Math.min(shown, loaded)} newest record${Math.min(shown, loaded) === 1 ? "" : "s"}`));
+  if (shown < loaded) {
+    controls.appendChild(actionButton("Show more", "", showMore));
+  } else if (hasOlder) {
+    controls.appendChild(actionButton("Load older from StudioNet", "", loadOlder));
+  }
+  container.appendChild(controls);
+}
+
 function renderQuestions() {
   const container = $("truth-feed");
   if (!container) return;
@@ -451,7 +699,7 @@ function renderQuestions() {
     return;
   }
 
-  for (const question of state.questions.slice(0, 12)) {
+  for (const question of state.questions.slice(0, state.questionVisible)) {
     const card = document.createElement("article");
     card.className = "decision-card";
     const head = document.createElement("div");
@@ -538,6 +786,16 @@ function renderQuestions() {
     if (actions.childElementCount) card.appendChild(actions);
     container.appendChild(card);
   }
+  appendRecordControls(container, {
+    shown: state.questionVisible,
+    loaded: state.questions.length,
+    hasOlder: state.questionOffset > 0,
+    showMore: () => {
+      state.questionVisible += VISIBLE_STEP;
+      renderQuestions();
+    },
+    loadOlder: loadOlderQuestions,
+  });
 }
 
 function renderCharter() {
@@ -565,7 +823,7 @@ function renderProposals() {
     return;
   }
 
-  for (const proposal of state.proposals.slice(0, 12)) {
+  for (const proposal of state.proposals.slice(0, state.proposalVisible)) {
     const card = document.createElement("article");
     card.className = "decision-card";
     const head = document.createElement("div");
@@ -642,6 +900,16 @@ function renderProposals() {
     if (actions.childElementCount) card.appendChild(actions);
     container.appendChild(card);
   }
+  appendRecordControls(container, {
+    shown: state.proposalVisible,
+    loaded: state.proposals.length,
+    hasOlder: state.proposalOffset > 0,
+    showMore: () => {
+      state.proposalVisible += VISIBLE_STEP;
+      renderProposals();
+    },
+    loadOlder: loadOlderProposals,
+  });
 }
 
 function renderRegistry() {
@@ -991,12 +1259,31 @@ $("refresh-registry").addEventListener("click", async (event) => {
   try { await refreshRegistry({ fresh: true }); } catch (error) { toast("error", errMsg(error)); }
   finally { setRefreshBusy(event.currentTarget, false, "Sync registry"); }
 });
+$("refresh-transactions").addEventListener("click", async (event) => {
+  setRefreshBusy(event.currentTarget, true, "Refresh status");
+  try { await refreshTrackedTransactions({ announce: true }); }
+  finally { setRefreshBusy(event.currentTarget, false, "Refresh status"); }
+});
+$("dismiss-transactions").addEventListener("click", () => {
+  const active = readTrackedTransactions().filter(
+    (item) => !["FINALIZED", "FAILED", "CANCELED"].includes(String(item.status || "").toUpperCase()),
+  );
+  writeTrackedTransactions(active);
+});
 
 addSourceRow();
 renderWallet();
+renderTransactionActivity();
 if (window.ethereum) bindWalletEvents(window.ethereum);
 refreshAll();
+refreshTrackedTransactions().catch(() => {});
 
 window.setInterval(() => {
   if (document.visibilityState === "visible") refreshRegistry({ fresh: false }).catch(() => {});
 }, 60_000);
+
+window.setInterval(() => {
+  if (document.visibilityState === "visible" && readTrackedTransactions().length) {
+    refreshTrackedTransactions().catch(() => {});
+  }
+}, 15_000);

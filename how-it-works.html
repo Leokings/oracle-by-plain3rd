@@ -91,6 +91,34 @@
         <article><strong>Protected</strong><p>Private evidence hosts, embedded credentials and nonstandard ports are rejected.</p></article>
       </section>
 
+      <section class="article-card deployment-card" id="contracts">
+        <span class="step-number">05</span>
+        <div>
+          <h2>Verify the deployed boundary</h2>
+          <p>Oracle is a single public interface over two independently deployed StudioNet contracts. Keeping their state separate preserves each audited history.</p>
+          <dl class="deployment-list">
+            <div><dt>Network</dt><dd>GenLayer StudioNet · chain 61999</dd></div>
+            <div><dt>TruthFeed</dt><dd><code>0x4207498939EC4649B8aF2dDE13Df69D9383Ac49a</code></dd></div>
+            <div><dt>LivingConstitution</dt><dd><code>0xC4d913fCdA9Bfe3BA2207f7970d9834b2159EfF1</code></dd></div>
+            <div><dt>Source snapshots</dt><dd><a href="https://github.com/Leokings/truthfeed/tree/9e05a1aa50c67a06e5fa5b946b5d62177e384176" target="_blank" rel="noreferrer">TruthFeed</a> · <a href="https://github.com/Leokings/livingconstitution/tree/7f4dc1d01b86748d4fdea3703cf11e7e8bf9dc67" target="_blank" rel="noreferrer">LivingConstitution</a></dd></div>
+          </dl>
+          <p class="boundary-note">Public reviewers can create, resolve, review and vote in Oracle. Charter amendments and two-step ownership transfers remain explicit owner operations and are not duplicated in retired standalone interfaces.</p>
+        </div>
+      </section>
+
+      <section class="article-card deployment-card" id="release-verification">
+        <span class="step-number">06</span>
+        <div>
+          <h2>Review the release evidence</h2>
+          <p>The August 24, 2026 release passed 14 automated checks, a zero-high-severity dependency audit, desktop and mobile browser verification, and a real fresh-wallet StudioNet consensus flow.</p>
+          <dl class="deployment-list">
+            <div><dt>Evidence result</dt><dd><code>q-genlayer-intelligent-contracts-3d309142</code> · YES</dd></div>
+            <div><dt>Governance result</dt><dd><code>p-oracle-review-transparency-02ba1a08</code> · COMPLIANT · charter v2</dd></div>
+            <div><dt>Product health</dt><dd>Privacy-friendly Vercel page analytics and Core Web Vitals; no custom wallet, question, proposal or evidence events.</dd></div>
+          </dl>
+        </div>
+      </section>
+
       <a class="button button-primary" href="index.html">Open Oracle by Plain3rd</a>
     </main>
   </body>

@@ -6,7 +6,11 @@ import {
   finalityLabel,
   isPublicHttpsSource,
   isProductionRecordId,
+  latestPageWindow,
+  mergeUniqueNewest,
+  newestFirst,
   normalizePage,
+  olderPageWindow,
   shortAddress,
   splitCharter,
   slugify,
@@ -38,6 +42,23 @@ test("normalizes array and paginated contract responses", () => {
     total: 9,
     items: [{ id: "b" }],
   });
+});
+
+test("loads the newest contract page and walks backward without overlap", () => {
+  assert.deepEqual(latestPageWindow(137, 50), { offset: 87, limit: 50 });
+  assert.deepEqual(latestPageWindow(12, 50), { offset: 0, limit: 12 });
+  assert.deepEqual(olderPageWindow(87, 50), { offset: 37, limit: 50 });
+  assert.deepEqual(olderPageWindow(37, 50), { offset: 0, limit: 37 });
+});
+
+test("sorts and merges decision records newest-first", () => {
+  const older = { id: "old", created_at: "2026-01-01T00:00:00Z" };
+  const newer = { id: "new", created_at: "2026-01-02T00:00:00Z" };
+  assert.deepEqual(newestFirst([older, newer]).map((item) => item.id), ["new", "old"]);
+  assert.deepEqual(
+    mergeUniqueNewest([newer], [older, { ...newer, title: "updated" }]).map((item) => [item.id, item.title]),
+    [["new", "updated"], ["old", undefined]],
+  );
 });
 
 test("keeps non-production records out of the public interface", () => {

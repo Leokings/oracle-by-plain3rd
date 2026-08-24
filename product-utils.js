@@ -53,6 +53,42 @@ export function normalizePage(value) {
   return { total: Number(value?.total ?? items.length) || 0, items };
 }
 
+export function latestPageWindow(total, pageSize = 50) {
+  const safeTotal = Math.max(Number(total) || 0, 0);
+  const safeSize = Math.max(Number(pageSize) || 1, 1);
+  return {
+    offset: Math.max(safeTotal - safeSize, 0),
+    limit: Math.min(safeSize, safeTotal),
+  };
+}
+
+export function olderPageWindow(currentOffset, pageSize = 50) {
+  const safeOffset = Math.max(Number(currentOffset) || 0, 0);
+  const safeSize = Math.max(Number(pageSize) || 1, 1);
+  const offset = Math.max(safeOffset - safeSize, 0);
+  return { offset, limit: safeOffset - offset };
+}
+
+export function newestFirst(items, dateField = "created_at") {
+  return (Array.isArray(items) ? items : [])
+    .map((item, index) => ({ item, index, time: Date.parse(item?.[dateField] || "") }))
+    .sort((left, right) => {
+      const leftTime = Number.isFinite(left.time) ? left.time : -Infinity;
+      const rightTime = Number.isFinite(right.time) ? right.time : -Infinity;
+      return rightTime - leftTime || right.index - left.index;
+    })
+    .map(({ item }) => item);
+}
+
+export function mergeUniqueNewest(current, incoming, key = "id", dateField = "created_at") {
+  const records = new Map();
+  for (const item of [...(Array.isArray(current) ? current : []), ...(Array.isArray(incoming) ? incoming : [])]) {
+    const id = String(item?.[key] || "");
+    if (id) records.set(id, item);
+  }
+  return newestFirst([...records.values()], dateField);
+}
+
 export function isProductionRecordId(value) {
   const id = String(value || "").trim();
   return Boolean(id) && !/^(?:pilot|demo|sample)(?:[-_]|$)/i.test(id);
