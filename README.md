@@ -25,7 +25,8 @@ Live product: [https://oracle-by-plain3rd.vercel.app](https://oracle-by-plain3rd
 
 The source repositories remain private. A reviewer who needs source access must
 be invited to `Leokings/oracle-by-plain3rd`, `Leokings/truthfeed`, and
-`Leokings/livingconstitution`.
+`Leokings/livingconstitution`. The deployed contract sources are TruthFeed
+commit `848302e` and LivingConstitution commit `ab2c921`.
 
 ## Local checks
 
