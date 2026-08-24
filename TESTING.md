@@ -19,19 +19,19 @@ and the production bundle. No wallet or StudioNet transaction is used.
    real assets in it.
 2. Open `https://oracle-by-plain3rd.vercel.app`, select **Connect wallet**, and
    approve GenLayer StudioNet, chain ID `61999`.
-3. Under **Ask**, post a unique question with an exact rule and
-   `https://example.com/` as the first evidence source.
+3. Under **Ask**, post a unique question with an exact rule and a reputable
+   public HTTPS page as the first evidence source.
 4. Select **Resolve with validators**. The decision should show an outcome,
    numbered citations, separately labeled leader rationale and transaction
    finality.
-5. Inspect the existing case `pilot-example-domain-10e9a999` to see two
-   preserved evidence rounds.
-6. Under **Govern**, submit a proposal. Select **Run constitutional review** and
+5. Confirm the new decision appears under **Registry** with its transaction
+   finality shown separately from its review history.
+6. Under **Govern**, submit a real proposal. Select **Run constitutional review** and
    wait for validator consensus.
-7. Inspect `pilot-open-source-grant-2c718c7c` to see a compliant proposal and
-   its pilot ballot. A wallet may vote only once per ballot.
-8. Search both records under **Registry** and confirm their finality is shown
-   separately from their application-level review history.
+7. If the contract owner opens a ballot, connect a second fresh wallet and
+   verify that each wallet may vote only once.
+8. Search your records under **Registry** and confirm their finality is shown
+   separately from application-level review history.
 
 ## What different wallets may do
 

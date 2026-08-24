@@ -6,6 +6,7 @@ import {
   createCaseId,
   finalityLabel,
   isPublicHttpsSource,
+  isProductionRecordId,
   normalizePage,
   shortAddress,
   splitCharter,
@@ -51,9 +52,7 @@ const state = {
   constitution: "",
   constitutionVersion: 0,
   questions: [],
-  questionTotal: 0,
   proposals: [],
-  proposalTotal: 0,
   ballots: [],
   registry: [],
   registryWarning: "",
@@ -346,25 +345,24 @@ function normalizeBallot(raw) {
 }
 
 async function refreshTruth() {
-  const [stats, rawPage, ownership] = await Promise.all([
-    readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "get_stats"),
+  const [rawPage, ownership] = await Promise.all([
     readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "list_questions", [0, PAGE_SIZE]),
     readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "get_ownership_state").catch(() => ({ owner: "" })),
   ]);
   const page = normalizePage(rawPage);
-  state.questions = page.items.map(normalizeQuestion);
-  state.questionTotal = Number(stats?.created ?? page.total) || page.total;
+  state.questions = page.items
+    .map(normalizeQuestion)
+    .filter((item) => isProductionRecordId(item.id));
   state.truthOwner = String(ownership?.owner || "");
   renderQuestions();
   renderMetrics();
 }
 
 async function refreshGovernance() {
-  const [constitution, version, rawProposals, stats, ownership, rawBallots] = await Promise.all([
+  const [constitution, version, rawProposals, ownership, rawBallots] = await Promise.all([
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_constitution"),
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "constitution_version_count"),
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "list_proposals", [0, PAGE_SIZE]),
-    readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_stats"),
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_ownership_state").catch(() => ({ owner: "" })),
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "list_ballots", [0, PAGE_SIZE]).catch(() => ({ items: [] })),
   ]);
@@ -372,10 +370,13 @@ async function refreshGovernance() {
   const ballotPage = normalizePage(rawBallots);
   state.constitution = String(constitution || "");
   state.constitutionVersion = Number(version || 0);
-  state.proposals = proposalPage.items.map(normalizeProposal);
-  state.proposalTotal = Number(stats?.submitted ?? proposalPage.total) || proposalPage.total;
+  state.proposals = proposalPage.items
+    .map(normalizeProposal)
+    .filter((item) => isProductionRecordId(item.id));
   state.owner = String(ownership?.owner || "");
-  state.ballots = ballotPage.items.map(normalizeBallot);
+  state.ballots = ballotPage.items
+    .map(normalizeBallot)
+    .filter((item) => isProductionRecordId(item.proposal_id));
   renderCharter();
   renderProposals();
   renderMetrics();
@@ -387,7 +388,9 @@ async function refreshRegistry({ fresh = false } = {}) {
   });
   if (!response.ok) throw new Error(`Registry returned HTTP ${response.status}`);
   const result = await response.json();
-  state.registry = Array.isArray(result.items) ? result.items : [];
+  state.registry = Array.isArray(result.items)
+    ? result.items.filter((item) => isProductionRecordId(item?.case_id))
+    : [];
   state.registryWarning = String(result.warning || "");
   renderRegistry();
   renderQuestions();
@@ -418,8 +421,8 @@ async function refreshAll({ freshRegistry = false } = {}) {
 }
 
 function renderMetrics() {
-  $("truth-count").textContent = String(state.questionTotal || state.questions.length);
-  $("proposal-count").textContent = String(state.proposalTotal || state.proposals.length);
+  $("truth-count").textContent = String(state.questions.length);
+  $("proposal-count").textContent = String(state.proposals.length);
   $("final-count").textContent = String(state.registry.filter((item) => item.finality?.final).length);
 }
 
@@ -444,7 +447,7 @@ function renderQuestions() {
   if (!container) return;
   container.replaceChildren();
   if (!state.questions.length) {
-    container.appendChild(textElement("div", "empty-card", "No evidence questions are indexed yet."));
+    container.appendChild(textElement("div", "empty-card", "No production questions have been recorded yet."));
     return;
   }
 
@@ -558,7 +561,7 @@ function renderProposals() {
   if (!container) return;
   container.replaceChildren();
   if (!state.proposals.length) {
-    container.appendChild(textElement("div", "empty-card", "No governance proposals are indexed yet."));
+    container.appendChild(textElement("div", "empty-card", "No production proposals have been recorded yet."));
     return;
   }
 
@@ -654,7 +657,10 @@ function renderRegistry() {
   const container = $("registry-list");
   container.replaceChildren();
   if (!items.length) {
-    container.appendChild(textElement("div", "empty-card", state.registryWarning || "No matching decisions."));
+    const message = state.registryWarning || (
+      state.registry.length ? "No matching decisions." : "No production decisions have been recorded yet."
+    );
+    container.appendChild(textElement("div", "empty-card", message));
     return;
   }
   for (const item of items) {
@@ -685,7 +691,7 @@ function addSourceRow(value = "") {
   input.type = "url";
   input.inputMode = "url";
   input.maxLength = 2048;
-  input.placeholder = "https://example.com/";
+  input.placeholder = "https://public-source.org/article";
   input.value = value;
   input.setAttribute("aria-label", `Evidence source ${container.children.length + 1}`);
   const remove = document.createElement("button");
@@ -791,7 +797,7 @@ async function recheckQuestion(id) {
   }
   let replacementSources = [];
   if (window.confirm("Replace the evidence sources for the new round? Choose Cancel to reuse the existing pack.")) {
-    const raw = window.prompt("Enter one to five public HTTPS URLs separated by commas:", "https://example.com/");
+    const raw = window.prompt("Enter one to five public HTTPS URLs separated by commas:", "");
     if (raw === null) return;
     replacementSources = raw.split(",").map((item) => item.trim()).filter(Boolean);
     if (

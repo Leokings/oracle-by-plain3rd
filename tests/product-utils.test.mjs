@@ -5,6 +5,7 @@ import {
   createCaseId,
   finalityLabel,
   isPublicHttpsSource,
+  isProductionRecordId,
   normalizePage,
   shortAddress,
   splitCharter,
@@ -37,6 +38,14 @@ test("normalizes array and paginated contract responses", () => {
     total: 9,
     items: [{ id: "b" }],
   });
+});
+
+test("keeps non-production records out of the public interface", () => {
+  assert.equal(isProductionRecordId("pilot-example"), false);
+  assert.equal(isProductionRecordId("DEMO_case"), false);
+  assert.equal(isProductionRecordId("sample"), false);
+  assert.equal(isProductionRecordId("q-community-budget-abc12"), true);
+  assert.equal(isProductionRecordId(""), false);
 });
 
 test("splits compact and newline-delimited charters into articles", () => {

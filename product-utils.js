@@ -53,6 +53,11 @@ export function normalizePage(value) {
   return { total: Number(value?.total ?? items.length) || 0, items };
 }
 
+export function isProductionRecordId(value) {
+  const id = String(value || "").trim();
+  return Boolean(id) && !/^(?:pilot|demo|sample)(?:[-_]|$)/i.test(id);
+}
+
 export function splitCharter(value) {
   return String(value || "")
     .split(/\r?\n+|(?=Article\s+\d+\s*:)/i)

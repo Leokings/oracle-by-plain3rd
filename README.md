@@ -57,3 +57,5 @@ used by the browser application.
   ballots and contract state are the authoritative fields.
 - StudioNet rechecks are application-level reviews that preserve prior rulings;
   they are not presented as native bonded appeals.
+- Records explicitly labeled with `pilot-`, `demo-` or `sample-` identifiers
+  remain on-chain but are excluded from the production interface and metrics.
