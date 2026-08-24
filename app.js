@@ -126,7 +126,7 @@ function registryRecord(kind, caseId) {
 }
 
 async function readContract(address, functionName, args = []) {
-  if (!readClient) throw new Error("Oracle is missing its StudioNet configuration.");
+  if (!readClient) throw new Error("Oracle by Plain3rd is missing its StudioNet configuration.");
   return readClient.readContract({ address, functionName, args });
 }
 
@@ -239,7 +239,7 @@ function disconnectWallet() {
   sessionStorage.removeItem(WALLET_KEY);
   resetWriteClient();
   renderWallet();
-  toast("info", "Oracle wallet session cleared.");
+  toast("info", "Oracle by Plain3rd wallet session cleared.");
 }
 
 function getWriteClient(address, provider) {
@@ -399,7 +399,7 @@ async function refreshAll({ freshRegistry = false } = {}) {
   if (!CONFIGURED) {
     $("network-status").classList.add("is-error");
     $("network-status").lastChild.textContent = "Config error";
-    toast("error", "Oracle deployment configuration is incomplete.", 10000);
+    toast("error", "Oracle by Plain3rd deployment configuration is incomplete.", 10000);
     return;
   }
   const results = await Promise.allSettled([
@@ -413,7 +413,7 @@ async function refreshAll({ freshRegistry = false } = {}) {
   status.classList.toggle("is-error", failures.length === results.length);
   status.lastChild.textContent = failures.length === results.length ? "Unavailable" : "Live · StudioNet";
   if (failures.length) {
-    console.warn("Oracle refresh warnings:", failures.map((item) => item.reason));
+    console.warn("Oracle by Plain3rd refresh warnings:", failures.map((item) => item.reason));
   }
 }
 
@@ -663,7 +663,7 @@ function renderRegistry() {
     const head = document.createElement("div");
     head.className = "registry-item-head";
     head.append(
-      textElement("span", "source-chip", item.source_name || "Oracle"),
+      textElement("span", "source-chip", item.source_name || "Oracle by Plain3rd"),
       textElement("span", `badge ${item.finality?.final ? "badge-final" : ""}`, finalityLabel(item)),
     );
     card.append(

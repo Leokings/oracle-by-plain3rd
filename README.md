@@ -1,6 +1,8 @@
-# Oracle
+# Oracle by Plain3rd
 
-Oracle is one product interface for two GenLayer StudioNet decision engines:
+Oracle by Plain3rd is one product interface for two GenLayer StudioNet decision engines:
+
+Live product: `https://oracle-by-plain3rd.vercel.app`
 
 - **Evidence Oracle** uses the deployed TruthFeed contract to resolve sourced
   YES/NO/UNCLEAR questions through validator consensus.
@@ -17,7 +19,7 @@ Oracle is one product interface for two GenLayer StudioNet decision engines:
 - LivingConstitution: `0xC4d913fCdA9Bfe3BA2207f7970d9834b2159EfF1`
 - Registry API: `https://livingconstitution-nine.vercel.app`
 
-Oracle intentionally does not merge the two intelligent contracts. Keeping
+Oracle by Plain3rd intentionally does not merge the two intelligent contracts. Keeping
 their storage and permissions separate preserves their audited histories and
 lets each decision engine evolve without a risky state migration.
 
@@ -55,4 +57,3 @@ used by the browser application.
   ballots and contract state are the authoritative fields.
 - StudioNet rechecks are application-level reviews that preserve prior rulings;
   they are not presented as native bonded appeals.
-

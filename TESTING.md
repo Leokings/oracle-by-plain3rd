@@ -1,4 +1,4 @@
-# Testing Oracle
+# Testing Oracle by Plain3rd
 
 ## Fast automated test
 
@@ -17,8 +17,8 @@ and the production bundle. No wallet or StudioNet transaction is used.
 
 1. In MetaMask, create a new account used only for StudioNet testing. Do not put
    real assets in it.
-2. Open the Oracle Vercel site and select **Connect wallet**. Approve GenLayer
-   StudioNet, chain ID `61999`.
+2. Open `https://oracle-by-plain3rd.vercel.app`, select **Connect wallet**, and
+   approve GenLayer StudioNet, chain ID `61999`.
 3. Under **Ask**, post a unique question with an exact rule and
    `https://example.com/` as the first evidence source.
 4. Select **Resolve with validators**. The decision should show an outcome,
@@ -41,11 +41,10 @@ and the production bundle. No wallet or StudioNet transaction is used.
 - Only a proposal submitter or LivingConstitution owner may request its recheck.
 - Only the LivingConstitution owner may open a ballot.
 - Charter amendments and two-step ownership controls stay in the original
-  audited operator consoles linked from Oracle.
+  audited operator consoles linked from Oracle by Plain3rd.
 
 ## Expected transaction states
 
 `ACCEPTED` means validator execution succeeded but the transaction can still be
 inside the protocol finalization window. `FINALIZED` means the registry has
-observed the irreversible state. Oracle never treats those labels as the same.
-
+observed the irreversible state. Oracle by Plain3rd never treats those labels as the same.

@@ -1,10 +1,10 @@
-# Oracle architecture
+# Oracle by Plain3rd architecture
 
 ```text
 Browser wallet
       |
       v
-Oracle unified frontend (Vercel)
+Oracle by Plain3rd frontend (Vercel)
       |-------------------------------|
       v                               v
 TruthFeed contract             LivingConstitution contract
@@ -23,7 +23,7 @@ TruthFeed contract             LivingConstitution contract
 The merge is intentionally at the product and index layers. TruthFeed and
 LivingConstitution have different schemas, permissions and decision semantics.
 A new monolithic contract would require migrating append-only histories and
-would replace already-audited deployments. Oracle instead provides one wallet
+would replace already-audited deployments. Oracle by Plain3rd instead provides one wallet
 session, common finality language and a single searchable record.
 
 ## Browser-to-chain flow
@@ -32,7 +32,7 @@ session, common finality language and a single searchable record.
 2. Read-only calls use the vendored `genlayer-js` SDK without a wallet.
 3. Writes require an EIP-1193 wallet, an explicit chain `61999` switch and an
    authorized account.
-4. Oracle checks both consensus status and contract execution status.
+4. Oracle by Plain3rd checks both consensus status and contract execution status.
 5. Successful transaction hashes are posted to the registry, where calldata,
    target contract, operation and case ID are validated before storage.
 6. Registry finality is refreshed independently from application decisions.
@@ -45,4 +45,3 @@ session, common finality language and a single searchable record.
 - No database or administration credential is shipped to the browser.
 - Content Security Policy permits only the StudioNet RPC and registry origin for
   network connections.
-
