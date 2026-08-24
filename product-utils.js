@@ -91,7 +91,10 @@ export function mergeUniqueNewest(current, incoming, key = "id", dateField = "cr
 
 export function isProductionRecordId(value) {
   const id = String(value || "").trim();
-  return Boolean(id) && !/^(?:pilot|release-check|integration|test-record)(?:[-_]|$)/i.test(id);
+  return (
+    Boolean(id) &&
+    !/^(?:verify-)?(?:pilot|release-check|integration|test-record)(?:[-_]|$)/i.test(id)
+  );
 }
 
 export function splitCharter(value) {

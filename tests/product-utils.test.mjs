@@ -67,6 +67,7 @@ test("keeps non-production records out of the public interface", () => {
   assert.equal(isProductionRecordId("INTEGRATION_case"), false);
   assert.equal(isProductionRecordId("test-record"), false);
   assert.equal(isProductionRecordId("pilot-legacy-check"), false);
+  assert.equal(isProductionRecordId("verify-release-check-governance-123"), false);
   assert.equal(isProductionRecordId("q-community-budget-abc12"), true);
   assert.equal(isProductionRecordId(""), false);
 });
