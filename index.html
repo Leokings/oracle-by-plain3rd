@@ -59,9 +59,9 @@
       <section class="hero" id="top" aria-labelledby="hero-title">
         <div class="hero-copy">
           <p class="eyebrow">PUBLIC TESTNET · GENLAYER STUDIONET</p>
-          <h1 id="hero-title">Check evidence.<br /><span>Review proposals.</span></h1>
+          <h1 id="hero-title">Evidence. Decisions.<br /><span>Verified results.</span></h1>
           <p class="hero-lede">
-            Anyone can browse. Connect a StudioNet wallet to submit, resolve, review, or vote.
+            TruthFeed proves the facts. Governance uses them, then checks what happened.
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="#ask">Ask a question</a>
@@ -158,7 +158,7 @@
       </section>
 
       <section class="bridge" aria-label="Decision flow">
-        <span>Evidence</span><i></i><span>Consensus</span><i></i><span>Governance</span><i></i><span>Action</span>
+        <span>Evidence</span><i></i><span>Review</span><i></i><span>Vote</span><i></i><span>Verify</span>
       </section>
 
       <section class="workspace workspace-govern" id="govern" aria-labelledby="govern-title">
@@ -202,8 +202,47 @@
                 placeholder="State the action, amount, beneficiaries, safeguards and reporting commitment."
               ></textarea>
             </div>
+            <fieldset class="linked-fields">
+              <legend>Evidence used</legend>
+              <div id="proposal-evidence-options" class="evidence-options">
+                <p class="evidence-empty">Loading resolved evidence…</p>
+              </div>
+              <small>Choose one to five resolved answers.</small>
+            </fieldset>
+            <fieldset class="linked-fields">
+              <legend>Outcome check</legend>
+              <div class="field">
+                <label for="verification-question">Question</label>
+                <textarea
+                  id="verification-question"
+                  maxlength="1000"
+                  required
+                  placeholder="How will we know the proposal worked?"
+                ></textarea>
+              </div>
+              <div class="field">
+                <label for="verification-criteria">Decision rule</label>
+                <textarea
+                  id="verification-criteria"
+                  maxlength="4000"
+                  required
+                  placeholder="Define exactly what produces YES, NO, or UNCLEAR."
+                ></textarea>
+              </div>
+              <div class="field">
+                <div class="label-row">
+                  <label>Public HTTPS sources</label>
+                  <button class="text-button" id="add-verification-source" type="button">+ Add source</button>
+                </div>
+                <div id="verification-source-inputs"></div>
+              </div>
+              <div class="field">
+                <label for="verification-delay-days">Check after <span>(days)</span></label>
+                <input id="verification-delay-days" type="number" min="0" max="365" step="1" value="0" required />
+              </div>
+            </fieldset>
             <div class="explain-box">
-              Anyone can submit or review. The owner opens ballots. One wallet, one vote.
+              Passed proposals automatically create the outcome check.
             </div>
             <p class="form-error" id="governance-error" role="alert"></p>
             <button class="button button-gold button-full" id="governance-submit" type="submit">

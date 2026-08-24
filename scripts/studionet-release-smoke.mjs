@@ -5,10 +5,10 @@ import { receiptFailure } from "../tx-utils.js";
 
 const RPC_URL = "https://studio.genlayer.com/api";
 const REGISTRY_URL = "https://livingconstitution-nine.vercel.app";
-const TRUTH_ADDRESS = "0x4207498939EC4649B8aF2dDE13Df69D9383Ac49a";
-const LIVING_ADDRESS = "0xC4d913fCdA9Bfe3BA2207f7970d9834b2159EfF1";
-const TRUTH_KIND = "truthfeed.question.v1";
-const LIVING_KIND = "livingconstitution.proposal.v1";
+const TRUTH_ADDRESS = "0x704687cD890E636696F9362708c8832fbcC40773";
+const LIVING_ADDRESS = "0x7e397Abe9df988b05266d613b1c099a1458f0Fda";
+const TRUTH_KIND = "truthfeed.question.v2";
+const LIVING_KIND = "livingconstitution.proposal.v2";
 
 if (process.env.RUN_STUDIONET_SMOKE !== "1") {
   throw new Error("Set RUN_STUDIONET_SMOKE=1 to create real transactions on gasless StudioNet.");
@@ -19,8 +19,8 @@ const client = createClient({ chain: chains.studionet, endpoint: RPC_URL, accoun
 const suffix = account.address.slice(-8).toLowerCase();
 const existingQuestionId = process.env.STUDIONET_EXISTING_QUESTION_ID?.trim();
 const existingQuestionCreateHash = process.env.STUDIONET_EXISTING_QUESTION_CREATE_HASH?.trim();
-const questionId = existingQuestionId || `q-genlayer-intelligent-contracts-${suffix}`;
-const proposalId = `p-oracle-review-transparency-${suffix}`;
+const questionId = existingQuestionId || `release-check-evidence-${suffix}`;
+const proposalId = `release-check-governance-${suffix}`;
 
 console.log(`Fresh ephemeral StudioNet wallet: ${account.address}`);
 console.log("The private key is not printed or persisted.");
@@ -86,7 +86,12 @@ await write({
   args: [
     proposalId,
     "Publish an Oracle reviewer transparency package",
-    "Approve a documentation-only release that publishes the deployed contract addresses, exact source revisions, security and test results, transaction-recovery guidance, and a monthly public reliability update. No treasury allocation or private user data is requested.",
+    "Approve Oracle interface version 2 and publish its linked contract addresses, exact source revisions, automated test and security results, transaction-recovery guidance, and monthly reliability updates. Preserve all prior decisions. No treasury allocation or private user data is requested.",
+    `json:${JSON.stringify([questionId])}`,
+    "Does the public Oracle guide describe the Evidence to Governance to outcome-verification loop?",
+    "Answer YES only if the public guide describes sourced evidence supporting governance and a later evidence check verifying the result of an approved proposal. Answer NO if it contradicts that loop, otherwise UNCLEAR.",
+    `json:${JSON.stringify(["https://oracle-by-plain3rd.vercel.app/how-it-works"])}`,
+    0,
   ],
 });
 
@@ -106,5 +111,11 @@ const [decision, proposal] = await Promise.all([
 
 console.log(JSON.stringify({
   question: { id: questionId, status: decision.status, decision: decision.decision },
-  proposal: { id: proposalId, status: proposal.status, constitution_version: proposal.constitution_version },
+  proposal: {
+    id: proposalId,
+    status: proposal.status,
+    constitution_version: proposal.constitution_version,
+    evidence_ids: proposal.evidence_ids,
+    verification_question_id: proposal.verification_question_id,
+  },
 }, null, 2));

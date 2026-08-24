@@ -308,6 +308,15 @@ input:focus, textarea:focus, select:focus { border-color: var(--purple-light); b
 .source-row button { width: 42px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-2); color: var(--muted); cursor: pointer; }
 .form-error { min-height: 1.3rem; margin: 0 0 0.7rem; color: var(--red); font-size: 0.8rem; }
 .explain-box { margin-bottom: 1.2rem; border-left: 2px solid var(--gold); padding: 0.85rem 1rem; background: rgba(239, 189, 91, 0.06); color: var(--muted); font-size: 0.78rem; }
+.linked-fields { margin: 0 0 1.2rem; border: 1px solid var(--line); border-radius: 14px; padding: 1rem; }
+.linked-fields legend { padding: 0 0.4rem; color: var(--gold); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.linked-fields > small { color: var(--muted); font-size: 0.7rem; }
+.evidence-options { display: grid; gap: 0.48rem; max-height: 250px; margin-bottom: 0.55rem; overflow-y: auto; }
+.evidence-option { display: grid; grid-template-columns: auto 1fr; gap: 0.65rem; align-items: start; border: 1px solid var(--line); border-radius: 11px; padding: 0.68rem; background: rgba(8, 7, 18, 0.6); cursor: pointer; }
+.evidence-option input { width: auto; margin-top: 0.18rem; accent-color: var(--purple); }
+.evidence-option span { display: grid; gap: 0.2rem; min-width: 0; }
+.evidence-option strong { color: #ded9ed; font-size: 0.75rem; line-height: 1.35; }
+.evidence-option small, .evidence-empty { margin: 0; color: var(--muted); font-size: 0.66rem; overflow-wrap: anywhere; }
 
 .card-list { display: grid; gap: 0.85rem; }
 .loading-card, .empty-card { padding: 1.2rem; border: 1px dashed var(--line-bright); border-radius: 15px; color: var(--muted); }
@@ -333,9 +342,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--purple-light); b
   text-transform: uppercase;
   white-space: nowrap;
 }
-.badge-yes, .badge-compliant, .badge-final, .badge-finalized, .badge-accepted, .badge-ready_to_finalize, .badge-passed { border-color: rgba(70, 214, 143, 0.45); color: var(--green); background: rgba(70, 214, 143, 0.08); }
-.badge-no, .badge-non_compliant, .badge-failed, .badge-canceled { border-color: rgba(255, 111, 134, 0.45); color: var(--red); background: rgba(255, 111, 134, 0.08); }
-.badge-open, .badge-submitted, .badge-pending, .badge-proposing, .badge-committing, .badge-revealing, .badge-unclear, .badge-needs_review { border-color: rgba(239, 189, 91, 0.45); color: var(--gold); background: rgba(239, 189, 91, 0.08); }
+.badge-yes, .badge-compliant, .badge-final, .badge-finalized, .badge-accepted, .badge-ready_to_finalize, .badge-passed, .badge-achieved { border-color: rgba(70, 214, 143, 0.45); color: var(--green); background: rgba(70, 214, 143, 0.08); }
+.badge-no, .badge-non_compliant, .badge-failed, .badge-canceled, .badge-not_achieved, .badge-stale { border-color: rgba(255, 111, 134, 0.45); color: var(--red); background: rgba(255, 111, 134, 0.08); }
+.badge-open, .badge-submitted, .badge-pending, .badge-queued, .badge-not_started, .badge-proposing, .badge-committing, .badge-revealing, .badge-unclear, .badge-needs_review { border-color: rgba(239, 189, 91, 0.45); color: var(--gold); background: rgba(239, 189, 91, 0.08); }
 .card-copy { margin: 0.85rem 0 0; color: #c7c2d7; font-size: 0.86rem; }
 .card-label { margin: 0.95rem 0 0.25rem; color: var(--muted); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
 .source-list, .ref-list { margin: 0.35rem 0 0; padding-left: 1.2rem; }
@@ -344,7 +353,11 @@ input:focus, textarea:focus, select:focus { border-color: var(--purple-light); b
 .history { margin-top: 0.85rem; color: var(--muted); font-size: 0.76rem; }
 .history summary { cursor: pointer; color: var(--purple-light); font-weight: 700; }
 .history ol { padding-left: 1.2rem; }
-.finality-row, .ballot-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.72rem; }
+.finality-row, .ballot-row, .outcome-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.72rem; }
+.linked-record { margin: 0.65rem 0 0; color: var(--cyan); font-size: 0.7rem; overflow-wrap: anywhere; }
+.linked-evidence { margin-top: 0.9rem; border-left: 2px solid var(--cyan); padding-left: 0.8rem; }
+.linked-evidence ul { display: grid; gap: 0.25rem; margin: 0.4rem 0 0.55rem; padding-left: 1.1rem; color: var(--muted); font-size: 0.7rem; }
+.linked-evidence a { color: var(--cyan); overflow-wrap: anywhere; }
 .card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; }
 .card-actions button { min-height: 36px; border: 1px solid var(--line-bright); border-radius: 10px; padding: 0.46rem 0.7rem; background: var(--surface-2); color: var(--text); font-size: 0.72rem; font-weight: 700; cursor: pointer; }
 .card-actions button.action-primary { border-color: var(--purple); color: var(--purple-light); }

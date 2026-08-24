@@ -1,5 +1,5 @@
-export const LIVING_KIND = "livingconstitution.proposal.v1";
-export const TRUTH_KIND = "truthfeed.question.v1";
+export const LIVING_KIND = "livingconstitution.proposal.v2";
+export const TRUTH_KIND = "truthfeed.question.v2";
 
 export function shortAddress(value) {
   const address = String(value || "");
@@ -91,7 +91,7 @@ export function mergeUniqueNewest(current, incoming, key = "id", dateField = "cr
 
 export function isProductionRecordId(value) {
   const id = String(value || "").trim();
-  return Boolean(id) && !/^(?:pilot|demo|sample)(?:[-_]|$)/i.test(id);
+  return Boolean(id) && !/^(?:pilot|release-check|integration|test-record)(?:[-_]|$)/i.test(id);
 }
 
 export function splitCharter(value) {
@@ -99,6 +99,21 @@ export function splitCharter(value) {
     .split(/\r?\n+|(?=Article\s+\d+\s*:)/i)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+export function evidenceSnapshotCurrent(snapshot, questions) {
+  if (!Array.isArray(snapshot) || !snapshot.length) return false;
+  const byId = new Map(
+    (Array.isArray(questions) ? questions : []).map((question) => [String(question?.id || ""), question]),
+  );
+  return snapshot.every((item) => {
+    const current = byId.get(String(item?.id || ""));
+    return Boolean(current) &&
+      String(current.status || "").toLowerCase() === "resolved" &&
+      String(current.outcome || "").toLowerCase() === String(item?.outcome || "").toLowerCase() &&
+      Number(current.resolution_round || 0) === Number(item?.resolution_round || 0) &&
+      JSON.stringify(current.citations || []) === JSON.stringify(item?.citations || []);
+  });
 }
 
 export function finalityLabel(item) {

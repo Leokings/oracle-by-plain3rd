@@ -33,11 +33,11 @@ const configuration = {
   RPC_URL: (process.env.GENLAYER_RPC_URL || "https://studio.genlayer.com/api").trim(),
   LIVING_CONTRACT_ADDRESS: (
     process.env.LIVING_CONSTITUTION_CONTRACT_ADDRESS ||
-    "0xC4d913fCdA9Bfe3BA2207f7970d9834b2159EfF1"
+    "0x7e397Abe9df988b05266d613b1c099a1458f0Fda"
   ).trim(),
   TRUTH_CONTRACT_ADDRESS: (
     process.env.TRUTHFEED_CONTRACT_ADDRESS ||
-    "0x4207498939EC4649B8aF2dDE13Df69D9383Ac49a"
+    "0x704687cD890E636696F9362708c8832fbcC40773"
   ).trim(),
   REGISTRY_API_BASE: (
     process.env.DECISION_REGISTRY_URL ||

@@ -6,6 +6,7 @@ import {
   LIVING_KIND,
   TRUTH_KIND,
   createCaseId,
+  evidenceSnapshotCurrent,
   finalityLabel,
   isPublicHttpsSource,
   isProductionRecordId,
@@ -42,8 +43,8 @@ const STUDIO_CHAIN_PARAMS = {
   rpcUrls: [CONFIG.RPC_URL || "https://studio.genlayer.com/api"],
   nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
 };
-const WALLET_KEY = "oracle_wallet_v1";
-const TRANSACTION_KEY = "oracle_transactions_v1";
+const WALLET_KEY = "oracle_wallet_v2";
+const TRANSACTION_KEY = "oracle_transactions_v2";
 const PAGE_SIZE = 50;
 const INITIAL_VISIBLE = 12;
 const VISIBLE_STEP = 12;
@@ -480,6 +481,9 @@ function normalizeQuestion(raw) {
     history: Array.isArray(raw?.history) ? raw.history : [],
     creator: String(raw?.creator || ""),
     resolve_not_before: Number(raw?.resolve_not_before || 0),
+    resolution_round: Number(raw?.resolution_round || 0),
+    link_type: String(raw?.link_type || "standalone"),
+    linked_proposal_id: String(raw?.linked_proposal_id || ""),
   };
 }
 
@@ -494,6 +498,13 @@ function normalizeProposal(raw) {
     rule_refs: Array.isArray(raw?.rule_refs) ? raw.rule_refs.map(String) : [],
     review_history: Array.isArray(raw?.review_history) ? raw.review_history : [],
     review_count: Number(raw?.review_count || 0),
+    evidence_ids: Array.isArray(raw?.evidence_ids) ? raw.evidence_ids.map(String) : [],
+    evidence_snapshot: Array.isArray(raw?.evidence_snapshot) ? raw.evidence_snapshot : [],
+    verification_question_id: String(raw?.verification_question_id || ""),
+    verification_status: String(raw?.verification_status || "not_started").toLowerCase(),
+    verification_outcome: String(raw?.verification_outcome || "").toLowerCase(),
+    verification_round: Number(raw?.verification_round || 0),
+    governance_outcome: String(raw?.governance_outcome || "pending").toLowerCase(),
   };
 }
 
@@ -540,6 +551,7 @@ async function refreshTruth() {
   state.questionOffset = page.offset;
   state.questionVisible = INITIAL_VISIBLE;
   state.truthOwner = String(ownership?.owner || "");
+  renderEvidenceOptions();
   renderQuestions();
   renderMetrics();
 }
@@ -590,6 +602,7 @@ async function loadOlderQuestions() {
   state.questions = mergeUniqueNewest(state.questions, incoming);
   state.questionOffset = window.offset;
   state.questionVisible += incoming.length;
+  renderEvidenceOptions();
   renderQuestions();
 }
 
@@ -624,7 +637,11 @@ async function refreshRegistry({ fresh = false } = {}) {
   if (!response.ok) throw new Error(`Registry returned HTTP ${response.status}`);
   const result = await response.json();
   state.registry = Array.isArray(result.items)
-    ? result.items.filter((item) => isProductionRecordId(item?.case_id))
+    ? result.items.filter(
+        (item) =>
+          [TRUTH_KIND, LIVING_KIND].includes(item?.kind) &&
+          isProductionRecordId(item?.case_id),
+      )
     : [];
   state.registryWarning = String(result.warning || "");
   renderRegistry();
@@ -690,6 +707,39 @@ function appendRecordControls(container, { shown, loaded, hasOlder, showMore, lo
   container.appendChild(controls);
 }
 
+function renderEvidenceOptions() {
+  const container = $("proposal-evidence-options");
+  if (!container) return;
+  const previous = new Set(
+    Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value),
+  );
+  container.replaceChildren();
+  const decisions = state.questions.filter(
+    (question) => question.status === "resolved" && ["yes", "no"].includes(question.outcome),
+  );
+  if (!decisions.length) {
+    const empty = textElement("p", "evidence-empty", "Resolve an evidence question first.");
+    container.appendChild(empty);
+    return;
+  }
+  for (const question of decisions) {
+    const label = document.createElement("label");
+    label.className = "evidence-option";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.name = "proposal-evidence";
+    input.value = question.id;
+    input.checked = previous.has(question.id);
+    const copy = document.createElement("span");
+    copy.append(
+      textElement("strong", "", question.text || question.id),
+      textElement("small", "", `${question.outcome.toUpperCase()} · ${question.id}`),
+    );
+    label.append(input, copy);
+    container.appendChild(label);
+  }
+}
+
 function renderQuestions() {
   const container = $("truth-feed");
   if (!container) return;
@@ -712,6 +762,12 @@ function renderQuestions() {
     const status = question.outcome || question.status;
     head.append(titleBlock, textElement("span", `badge badge-${status}`, status));
     card.append(head);
+
+    if (question.link_type === "proposal_outcome" && question.linked_proposal_id) {
+      card.append(
+        textElement("p", "linked-record", `Outcome check for ${question.linked_proposal_id}`),
+      );
+    }
 
     const decisionDetails = document.createElement("details");
     decisionDetails.className = "history";
@@ -844,6 +900,34 @@ function renderProposals() {
     head.append(titleBlock, textElement("span", `badge badge-${proposal.status}`, proposal.status.replaceAll("_", " ")));
     card.append(head, textElement("p", "card-copy", proposal.body));
 
+    const evidenceCurrent = evidenceSnapshotCurrent(proposal.evidence_snapshot, state.questions);
+    if (proposal.evidence_ids.length) {
+      const evidenceBlock = document.createElement("div");
+      evidenceBlock.className = "linked-evidence";
+      evidenceBlock.appendChild(textElement("p", "card-label", "Evidence used"));
+      const evidenceList = document.createElement("ul");
+      for (const evidenceId of proposal.evidence_ids) {
+        const snapshot = proposal.evidence_snapshot.find((item) => String(item?.id || "") === evidenceId);
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = "#ask";
+        link.textContent = evidenceId;
+        item.append(link, textElement("span", "", snapshot?.outcome ? ` · ${String(snapshot.outcome).toUpperCase()}` : " · awaiting review"));
+        evidenceList.appendChild(item);
+      }
+      evidenceBlock.appendChild(evidenceList);
+      if (proposal.evidence_snapshot.length) {
+        evidenceBlock.appendChild(
+          textElement(
+            "span",
+            `badge ${evidenceCurrent ? "badge-final" : "badge-stale"}`,
+            evidenceCurrent ? "evidence current" : "evidence changed",
+          ),
+        );
+      }
+      card.appendChild(evidenceBlock);
+    }
+
     if (proposal.rule_refs.length) {
       card.append(textElement("p", "card-label", "Cited charter rules"));
       const refs = document.createElement("ul");
@@ -886,6 +970,17 @@ function renderProposals() {
       card.appendChild(ballotRow);
     }
 
+    if (proposal.verification_question_id) {
+      const outcomeRow = document.createElement("div");
+      outcomeRow.className = "outcome-row";
+      const outcomeLabel = proposal.verification_outcome || proposal.verification_status;
+      outcomeRow.append(
+        textElement("span", `badge badge-${proposal.verification_status}`, `outcome ${outcomeLabel.replaceAll("_", " ")}`),
+        textElement("span", "", proposal.verification_question_id),
+      );
+      card.appendChild(outcomeRow);
+    }
+
     appendFinality(card, LIVING_KIND, proposal.id);
     const actions = document.createElement("div");
     actions.className = "card-actions";
@@ -898,7 +993,7 @@ function renderProposals() {
     if (proposal.status !== "submitted" && (isOwner || isSubmitter)) {
       actions.appendChild(actionButton("Request recheck", "", () => recheckProposal(proposal.id)));
     }
-    if (proposal.status === "compliant" && isOwner && (!ballot || ballot.status !== "open")) {
+    if (proposal.status === "compliant" && evidenceCurrent && isOwner && (!ballot || ballot.status !== "open")) {
       actions.appendChild(actionButton("Open ballot", "action-gold", () => openBallot(proposal.id)));
     }
     if (ballot?.status === "open" && ballot.closes_at > Math.floor(Date.now() / 1000)) {
@@ -909,6 +1004,31 @@ function renderProposals() {
     }
     if (ballot?.status === "open" && ballot.closes_at <= Math.floor(Date.now() / 1000)) {
       actions.appendChild(actionButton("Close ballot", "action-gold", () => closeBallot(proposal.id)));
+    }
+    const verificationQuestion = state.questions.find(
+      (question) => question.id === proposal.verification_question_id,
+    );
+    if (
+      storedWallet() &&
+      ballot?.status === "closed" &&
+      ballot.passed &&
+      verificationQuestion?.status === "resolved" &&
+      proposal.verification_round !== verificationQuestion.resolution_round
+    ) {
+      actions.appendChild(
+        actionButton("Update outcome", "action-primary", () => syncOutcomeVerification(proposal.id)),
+      );
+    }
+    if (
+      storedWallet() &&
+      ballot?.status === "closed" &&
+      ballot.passed &&
+      !verificationQuestion &&
+      ["queued", "pending"].includes(proposal.verification_status)
+    ) {
+      actions.appendChild(
+        actionButton("Retry outcome check", "", () => retryOutcomeVerification(proposal.id)),
+      );
     }
     if (actions.childElementCount) card.appendChild(actions);
     container.appendChild(card);
@@ -962,19 +1082,19 @@ function renderRegistry() {
   }
 }
 
-function addSourceRow(value = "") {
-  const container = $("source-inputs");
+function addUrlRow({ containerId, inputClass, label, value = "" }) {
+  const container = $(containerId);
   if (container.children.length >= MAX_SOURCES) return;
   const row = document.createElement("div");
   row.className = "source-row";
   const input = document.createElement("input");
-  input.className = "source-url";
+  input.className = inputClass;
   input.type = "url";
   input.inputMode = "url";
   input.maxLength = 2048;
   input.placeholder = "https://public-source.org/article";
   input.value = value;
-  input.setAttribute("aria-label", `Evidence source ${container.children.length + 1}`);
+  input.setAttribute("aria-label", `${label} ${container.children.length + 1}`);
   const remove = document.createElement("button");
   remove.type = "button";
   remove.textContent = "×";
@@ -986,8 +1106,26 @@ function addSourceRow(value = "") {
   container.appendChild(row);
 }
 
-function sourceValues() {
-  return Array.from(document.querySelectorAll(".source-url"))
+function addSourceRow(value = "") {
+  addUrlRow({
+    containerId: "source-inputs",
+    inputClass: "source-url",
+    label: "Evidence source",
+    value,
+  });
+}
+
+function addVerificationSourceRow(value = "") {
+  addUrlRow({
+    containerId: "verification-source-inputs",
+    inputClass: "verification-source-url",
+    label: "Outcome source",
+    value,
+  });
+}
+
+function sourceValues(selector = ".source-url") {
+  return Array.from(document.querySelectorAll(selector))
     .map((input) => input.value.trim())
     .filter(Boolean);
 }
@@ -1116,8 +1254,36 @@ async function submitProposal(event) {
   error.textContent = "";
   const title = $("proposal-title").value.trim();
   const body = $("proposal-body").value.trim();
+  const evidenceIds = Array.from(
+    document.querySelectorAll('input[name="proposal-evidence"]:checked'),
+  ).map((input) => input.value);
+  const verificationQuestion = $("verification-question").value.trim();
+  const verificationCriteria = $("verification-criteria").value.trim();
+  const verificationSources = sourceValues(".verification-source-url");
+  const verificationDelayDays = Number($("verification-delay-days").value || 0);
   if (!title || !body) {
     error.textContent = "Proposal title and body are required.";
+    return;
+  }
+  if (evidenceIds.length < 1 || evidenceIds.length > MAX_SOURCES) {
+    error.textContent = "Choose one to five resolved evidence decisions.";
+    return;
+  }
+  if (!verificationQuestion || !verificationCriteria) {
+    error.textContent = "Add the question and rule that will verify the result.";
+    return;
+  }
+  if (
+    verificationSources.length < 1 ||
+    verificationSources.length > MAX_SOURCES ||
+    new Set(verificationSources).size !== verificationSources.length ||
+    verificationSources.some((source) => !isPublicHttpsSource(source))
+  ) {
+    error.textContent = "Use one to five unique public HTTPS outcome sources.";
+    return;
+  }
+  if (!Number.isInteger(verificationDelayDays) || verificationDelayDays < 0 || verificationDelayDays > 365) {
+    error.textContent = "Outcome delay must be a whole number from 0 to 365 days.";
     return;
   }
   const id = createCaseId("p", title, Date.now(), randomUnit());
@@ -1130,9 +1296,20 @@ async function submitProposal(event) {
       caseId: id,
       operation: "submit_proposal",
       method: "submit_proposal",
-      args: [id, title, body],
+      args: [
+        id,
+        title,
+        body,
+        `json:${JSON.stringify(evidenceIds)}`,
+        verificationQuestion,
+        verificationCriteria,
+        `json:${JSON.stringify(verificationSources)}`,
+        verificationDelayDays * 24 * 60 * 60,
+      ],
     });
     event.target.reset();
+    $("verification-source-inputs").replaceChildren();
+    addVerificationSourceRow();
     await Promise.all([refreshGovernance(), refreshRegistry({ fresh: true })]);
   } catch (writeError) {
     error.textContent = errMsg(writeError);
@@ -1229,9 +1406,41 @@ async function closeBallot(id) {
       method: "close_ballot",
       args: [id],
     });
-    await Promise.all([refreshGovernance(), refreshRegistry({ fresh: true })]);
+    await Promise.all([refreshTruth(), refreshGovernance(), refreshRegistry({ fresh: true })]);
   } catch (error) {
     toast("error", `Could not close the ballot: ${errMsg(error)}`, 10000);
+  }
+}
+
+async function syncOutcomeVerification(id) {
+  try {
+    await executeWrite({
+      address: CONFIG.LIVING_CONTRACT_ADDRESS,
+      kind: LIVING_KIND,
+      caseId: id,
+      operation: "sync_outcome_verification",
+      method: "sync_outcome_verification",
+      args: [id],
+    });
+    await Promise.all([refreshGovernance(), refreshRegistry({ fresh: true })]);
+  } catch (error) {
+    toast("error", `Could not update the outcome: ${errMsg(error)}`, 10000);
+  }
+}
+
+async function retryOutcomeVerification(id) {
+  try {
+    await executeWrite({
+      address: CONFIG.LIVING_CONTRACT_ADDRESS,
+      kind: LIVING_KIND,
+      caseId: id,
+      operation: "retry_outcome_verification",
+      method: "retry_outcome_verification",
+      args: [id],
+    });
+    await Promise.all([refreshTruth(), refreshGovernance(), refreshRegistry({ fresh: true })]);
+  } catch (error) {
+    toast("error", `Could not retry the outcome check: ${errMsg(error)}`, 10000);
   }
 }
 
@@ -1245,6 +1454,7 @@ $("disconnect-wallet").addEventListener("click", disconnectWallet);
 $("truth-form").addEventListener("submit", submitTruth);
 $("proposal-form").addEventListener("submit", submitProposal);
 $("add-source").addEventListener("click", () => addSourceRow());
+$("add-verification-source").addEventListener("click", () => addVerificationSourceRow());
 $("registry-search").addEventListener("input", renderRegistry);
 $("registry-source").addEventListener("change", renderRegistry);
 $("copy-contracts").addEventListener("click", async () => {
@@ -1285,6 +1495,7 @@ $("dismiss-transactions").addEventListener("click", () => {
 });
 
 addSourceRow();
+addVerificationSourceRow();
 renderWallet();
 renderTransactionActivity();
 if (window.ethereum) bindWalletEvents(window.ethereum);

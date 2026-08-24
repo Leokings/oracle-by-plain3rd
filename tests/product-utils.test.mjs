@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   createCaseId,
+  evidenceSnapshotCurrent,
   finalityLabel,
   isPublicHttpsSource,
   isProductionRecordId,
@@ -62,9 +63,10 @@ test("sorts and merges decision records newest-first", () => {
 });
 
 test("keeps non-production records out of the public interface", () => {
-  assert.equal(isProductionRecordId("pilot-example"), false);
-  assert.equal(isProductionRecordId("DEMO_case"), false);
-  assert.equal(isProductionRecordId("sample"), false);
+  assert.equal(isProductionRecordId("release-check-example"), false);
+  assert.equal(isProductionRecordId("INTEGRATION_case"), false);
+  assert.equal(isProductionRecordId("test-record"), false);
+  assert.equal(isProductionRecordId("pilot-legacy-check"), false);
   assert.equal(isProductionRecordId("q-community-budget-abc12"), true);
   assert.equal(isProductionRecordId(""), false);
 });
@@ -81,4 +83,15 @@ test("formats compact addresses and registry finality", () => {
   assert.equal(shortAddress("0x1111111111111111111111111111111111111111"), "0x11111…11111");
   assert.equal(finalityLabel({ finality: { label: "Final" } }), "Final");
   assert.equal(finalityLabel(null), "Not tracked");
+});
+
+test("detects whether proposal evidence still matches TruthFeed", () => {
+  const snapshot = [{ id: "q-1", outcome: "yes", resolution_round: 1, citations: [1] }];
+  const current = [{ id: "q-1", status: "resolved", outcome: "yes", resolution_round: 1, citations: [1] }];
+  assert.equal(evidenceSnapshotCurrent(snapshot, current), true);
+  assert.equal(
+    evidenceSnapshotCurrent(snapshot, [{ ...current[0], resolution_round: 2 }]),
+    false,
+  );
+  assert.equal(evidenceSnapshotCurrent([], current), false);
 });

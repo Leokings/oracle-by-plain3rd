@@ -38,9 +38,9 @@
 
     <main class="article-page" id="content">
       <p class="eyebrow">PRODUCT GUIDE</p>
-      <h1>Evidence in.<br /><span>Decisions out.</span></h1>
+      <h1>Evidence in.<br /><span>Results checked.</span></h1>
       <p class="article-lede">
-        Oracle combines a fact-checking contract and a governance contract on StudioNet.
+        Two contracts work as one loop on StudioNet.
       </p>
 
       <section class="article-card">
@@ -53,27 +53,27 @@
       <section class="article-card">
         <span class="step-number">02</span>
         <div>
-          <h2>Review against the charter</h2>
-          <p>Validators check each proposal against the charter version used when it was submitted.</p>
+          <h2>Attach evidence to a proposal</h2>
+          <p>Every proposal names resolved TruthFeed decisions and defines how success will be checked.</p>
         </div>
       </section>
       <section class="article-card">
         <span class="step-number">03</span>
         <div>
-          <h2>Vote only after compliance</h2>
-          <p>The owner opens ballots for compliant proposals. Each wallet gets one vote.</p>
+          <h2>Review, then vote</h2>
+          <p>Governance reads the evidence, checks the charter, and blocks voting if that evidence changes.</p>
         </div>
       </section>
       <section class="article-card">
         <span class="step-number">04</span>
         <div>
-          <h2>Keep every prior ruling</h2>
-          <p>Rechecks preserve earlier decisions. Transaction finality stays separate.</p>
+          <h2>Verify the result</h2>
+          <p>A passed proposal creates a linked TruthFeed question. Its answer records whether the promised result happened.</p>
         </div>
       </section>
 
       <section class="trust-grid" aria-label="Trust boundaries">
-        <article><strong>On-chain</strong><p>Verdicts, citations, votes, and finality.</p></article>
+        <article><strong>On-chain</strong><p>Evidence links, verdicts, votes, and outcomes.</p></article>
         <article><strong>Context</strong><p>AI rationale is labeled separately.</p></article>
         <article><strong>Public sources</strong><p>Private or unsafe URLs are rejected.</p></article>
       </section>
@@ -85,24 +85,11 @@
           <p>Two StudioNet contracts, one interface.</p>
           <dl class="deployment-list">
             <div><dt>Network</dt><dd>GenLayer StudioNet · chain 61999</dd></div>
-            <div><dt>TruthFeed</dt><dd><code>0x4207498939EC4649B8aF2dDE13Df69D9383Ac49a</code></dd></div>
-            <div><dt>LivingConstitution</dt><dd><code>0xC4d913fCdA9Bfe3BA2207f7970d9834b2159EfF1</code></dd></div>
-            <div><dt>Source snapshots</dt><dd><a href="https://github.com/Leokings/truthfeed/tree/9e05a1aa50c67a06e5fa5b946b5d62177e384176" target="_blank" rel="noreferrer">TruthFeed</a> · <a href="https://github.com/Leokings/livingconstitution/tree/7f4dc1d01b86748d4fdea3703cf11e7e8bf9dc67" target="_blank" rel="noreferrer">LivingConstitution</a></dd></div>
+            <div><dt>Evidence contract</dt><dd><code>0x704687cD890E636696F9362708c8832fbcC40773</code></dd></div>
+            <div><dt>Governance contract</dt><dd><code>0x7e397Abe9df988b05266d613b1c099a1458f0Fda</code></dd></div>
+            <div><dt>Private source</dt><dd><a href="https://github.com/Leokings/truthfeed" target="_blank" rel="noreferrer">TruthFeed</a> · <a href="https://github.com/Leokings/livingconstitution" target="_blank" rel="noreferrer">LivingConstitution</a></dd></div>
           </dl>
           <p class="boundary-note">Anyone can participate. Ballot creation, charter changes, and ownership remain owner-only.</p>
-        </div>
-      </section>
-
-      <section class="article-card deployment-card" id="release-verification">
-        <span class="step-number">06</span>
-        <div>
-          <h2>Review the release evidence</h2>
-          <p>Verified August 24, 2026: automated tests, dependency audit, desktop/mobile checks, and a fresh-wallet StudioNet flow.</p>
-          <dl class="deployment-list">
-            <div><dt>Evidence result</dt><dd><code>q-genlayer-intelligent-contracts-3d309142</code> · YES</dd></div>
-            <div><dt>Governance result</dt><dd><code>p-oracle-review-transparency-02ba1a08</code> · COMPLIANT · charter v2</dd></div>
-            <div><dt>Product health</dt><dd>Privacy-friendly Vercel page analytics and Core Web Vitals; no custom wallet, question, proposal or evidence events.</dd></div>
-          </dl>
         </div>
       </section>
 
