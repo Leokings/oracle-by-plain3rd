@@ -17,6 +17,9 @@ await build({
   format: "esm",
   platform: "browser",
   target: ["es2022"],
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("production"),
+  },
   legalComments: "none",
   alias: {
     "genlayer-js": "./vendor/genlayer-js/index.js",
@@ -70,4 +73,3 @@ await writeFile(
   `window.OracleConfig = ${JSON.stringify(configuration)};\n`,
   "utf8",
 );
-

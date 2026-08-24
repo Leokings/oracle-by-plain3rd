@@ -58,7 +58,7 @@ const CONFIGURED =
 
 if (!IS_LOCAL) {
   inject({ mode: "production" });
-  injectSpeedInsights();
+  injectSpeedInsights({ debug: false });
 }
 
 const state = {
