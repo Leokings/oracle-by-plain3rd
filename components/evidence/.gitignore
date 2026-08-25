@@ -1,0 +1,21 @@
+# Real frontend configuration (contains deployment endpoints/addresses)
+frontend/config.js
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+artifacts/
+.vercel/
+.env*
+
+# Node (in case a static server is installed locally)
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/app.bundle.js
+
+# OS noise
+.DS_Store
+Thumbs.db
