@@ -5,6 +5,7 @@ import {
   createCaseId,
   evidenceSnapshotCurrent,
   finalityLabel,
+  governanceBallotGuidance,
   isPublicHttpsSource,
   isProductionRecordId,
   latestPageWindow,
@@ -107,6 +108,45 @@ test("validates owner-selected StudioNet ballot durations", () => {
   assert.equal(parseBallotDurationMinutes("4"), null);
   assert.equal(parseBallotDurationMinutes("5.5"), null);
   assert.equal(parseBallotDurationMinutes("129601"), null);
+});
+
+test("explains every governance voting state without hiding the next action", () => {
+  const base = {
+    proposalStatus: "compliant",
+    evidenceCurrent: true,
+    ballotClosesAt: 2_000,
+    governanceAdmin: "0x91B1b2D1f2De66400fcbeAEbadB8a5330eB28DC0",
+    now: 1_000,
+  };
+
+  assert.equal(
+    governanceBallotGuidance({ ...base, connected: true, isOwner: false, isSubmitter: false }),
+    "Waiting for Governance admin 0x91B1b…28DC0 to open voting. Vote buttons appear here after it opens.",
+  );
+  assert.equal(
+    governanceBallotGuidance({ ...base, connected: true, isOwner: true }),
+    "Governance admin action: open voting below, then set its quorum and duration.",
+  );
+  assert.equal(
+    governanceBallotGuidance({ ...base, connected: true, isOwner: false, isSubmitter: true }),
+    "You created this proposal, but only Governance admin 0x91B1b…28DC0 can open voting. Vote buttons appear here after it opens.",
+  );
+  assert.equal(
+    governanceBallotGuidance({ ...base, ballotStatus: "open", connected: true }),
+    "Voting is open. Choose Vote for or Vote against below.",
+  );
+  assert.equal(
+    governanceBallotGuidance({ ...base, ballotStatus: "open", connected: false }),
+    "Voting is open. Connect a wallet to choose Vote for or Vote against.",
+  );
+  assert.equal(
+    governanceBallotGuidance({ ...base, ballotStatus: "open", ballotClosesAt: 999, connected: true }),
+    "Voting has ended. Close the ballot to publish its result.",
+  );
+  assert.equal(
+    governanceBallotGuidance({ ...base, evidenceCurrent: false, connected: true }),
+    "Voting is paused because the linked evidence changed. Request a new rules review.",
+  );
 });
 
 test("detects whether proposal evidence still matches TruthFeed", () => {

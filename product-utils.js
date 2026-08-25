@@ -23,6 +23,68 @@ export function parseBallotDurationMinutes(value) {
     : null;
 }
 
+export function governanceBallotGuidance({
+  proposalStatus,
+  evidenceCurrent,
+  ballotStatus,
+  ballotClosesAt,
+  connected,
+  isOwner,
+  isSubmitter,
+  governanceAdmin,
+  now = Math.floor(Date.now() / 1000),
+}) {
+  const proposal = String(proposalStatus || "").toLowerCase();
+  const ballot = String(ballotStatus || "").toLowerCase();
+
+  if (ballot === "open") {
+    if (Number(ballotClosesAt || 0) <= Number(now)) {
+      return connected
+        ? "Voting has ended. Close the ballot to publish its result."
+        : "Voting has ended. Connect a wallet and close the ballot to publish its result.";
+    }
+    return connected
+      ? "Voting is open. Choose Vote for or Vote against below."
+      : "Voting is open. Connect a wallet to choose Vote for or Vote against.";
+  }
+
+  if (ballot === "closed") {
+    return "Voting is closed. The result is recorded in the ballot status above.";
+  }
+
+  if (["canceled", "cancelled"].includes(ballot)) {
+    return "This ballot was canceled. Request a proposal recheck before opening another ballot.";
+  }
+
+  if (proposal === "submitted") {
+    return "Run the rules review first. A ballot can open only after the proposal is compliant.";
+  }
+
+  if (proposal === "compliant" && !evidenceCurrent) {
+    return "Voting is paused because the linked evidence changed. Request a new rules review.";
+  }
+
+  if (proposal === "compliant") {
+    if (isOwner) {
+      return "Governance admin action: open voting below, then set its quorum and duration.";
+    }
+    const admin = shortAddress(governanceAdmin);
+    const adminLabel = admin ? `Governance admin ${admin}` : "The Governance admin";
+    if (isSubmitter) {
+      return `You created this proposal, but only ${adminLabel} can open voting. Vote buttons appear here after it opens.`;
+    }
+    return connected
+      ? `Waiting for ${adminLabel} to open voting. Vote buttons appear here after it opens.`
+      : `Voting has not opened. ${adminLabel} must start it first.`;
+  }
+
+  if (proposal === "non_compliant") {
+    return "This proposal did not pass its rules review, so it cannot go to a vote.";
+  }
+
+  return "Voting is not available for this proposal yet.";
+}
+
 export function slugify(value) {
   return String(value || "")
     .toLowerCase()

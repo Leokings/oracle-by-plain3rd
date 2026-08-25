@@ -8,6 +8,7 @@ import {
   createCaseId,
   evidenceSnapshotCurrent,
   finalityLabel,
+  governanceBallotGuidance,
   isPublicHttpsSource,
   isProductionRecordId,
   latestPageWindow,
@@ -1038,27 +1039,49 @@ function renderProposals() {
     }
 
     appendFinality(card, LIVING_KIND, proposal.id);
+    const now = Math.floor(Date.now() / 1000);
+    const wallet = storedWallet();
+    const isOwner = Boolean(
+      wallet && state.owner && wallet.address.toLowerCase() === state.owner.toLowerCase()
+    );
+    const isSubmitter = Boolean(
+      wallet && proposal.submitter && wallet.address.toLowerCase() === proposal.submitter.toLowerCase()
+    );
+    card.appendChild(
+      textElement(
+        "p",
+        "governance-guidance",
+        governanceBallotGuidance({
+          proposalStatus: proposal.status,
+          evidenceCurrent,
+          ballotStatus: ballot?.status,
+          ballotClosesAt: ballot?.closes_at,
+          connected: Boolean(wallet),
+          isOwner,
+          isSubmitter,
+          governanceAdmin: state.owner,
+          now,
+        }),
+      ),
+    );
     const actions = document.createElement("div");
     actions.className = "card-actions";
     if (proposal.status === "submitted") {
       actions.appendChild(actionButton("Run constitutional review", "action-gold", () => checkProposal(proposal.id)));
     }
-    const wallet = storedWallet();
-    const isOwner = wallet && state.owner && wallet.address.toLowerCase() === state.owner.toLowerCase();
-    const isSubmitter = wallet && proposal.submitter && wallet.address.toLowerCase() === proposal.submitter.toLowerCase();
     if (proposal.status !== "submitted" && (isOwner || isSubmitter)) {
       actions.appendChild(actionButton("Request recheck", "", () => recheckProposal(proposal.id)));
     }
     if (proposal.status === "compliant" && evidenceCurrent && isOwner && (!ballot || ballot.status !== "open")) {
-      actions.appendChild(actionButton("Open ballot", "action-gold", () => openBallot(proposal.id)));
+      actions.appendChild(actionButton("Open voting", "action-gold", () => openBallot(proposal.id)));
     }
-    if (ballot?.status === "open" && ballot.closes_at > Math.floor(Date.now() / 1000)) {
+    if (ballot?.status === "open" && ballot.closes_at > now) {
       actions.append(
         actionButton("Vote for", "action-primary", () => vote(proposal.id, true)),
         actionButton("Vote against", "", () => vote(proposal.id, false)),
       );
     }
-    if (ballot?.status === "open" && ballot.closes_at <= Math.floor(Date.now() / 1000)) {
+    if (ballot?.status === "open" && ballot.closes_at <= now) {
       actions.appendChild(actionButton("Close ballot", "action-gold", () => closeBallot(proposal.id)));
     }
     const verificationQuestion = state.questions.find(

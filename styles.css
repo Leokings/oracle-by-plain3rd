@@ -458,6 +458,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--purple-light); b
 .linked-evidence { margin-top: 0.9rem; border-left: 2px solid var(--cyan); padding-left: 0.8rem; }
 .linked-evidence ul { display: grid; gap: 0.25rem; margin: 0.4rem 0 0.55rem; padding-left: 1.1rem; color: var(--muted); font-size: 0.7rem; }
 .linked-evidence a { color: var(--cyan); overflow-wrap: anywhere; }
+.governance-guidance { margin: 0.9rem 0 0; border: 1px solid rgba(161, 128, 255, 0.32); border-radius: 12px; padding: 0.68rem 0.8rem; background: rgba(125, 88, 214, 0.08); color: #d7d0e8; font-size: 0.74rem; line-height: 1.5; }
 .card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; }
 .card-actions button { min-height: 36px; border: 1px solid var(--line-bright); border-radius: 10px; padding: 0.46rem 0.7rem; background: var(--surface-2); color: var(--text); font-size: 0.72rem; font-weight: 700; cursor: pointer; }
 .card-actions button.action-primary { border-color: var(--purple); color: var(--purple-light); }
