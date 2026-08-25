@@ -12,6 +12,7 @@ import {
   newestFirst,
   normalizePage,
   olderPageWindow,
+  parseBallotDurationMinutes,
   shortAddress,
   splitCharter,
   slugify,
@@ -97,6 +98,15 @@ test("turns wallet provider failures into clear next steps", () => {
     walletConnectionErrorMessage({ message: "Provider unavailable" }),
     "Wallet connection failed: Provider unavailable",
   );
+});
+
+test("validates owner-selected StudioNet ballot durations", () => {
+  assert.equal(parseBallotDurationMinutes("5"), 5);
+  assert.equal(parseBallotDurationMinutes("1440"), 1440);
+  assert.equal(parseBallotDurationMinutes("129600"), 129600);
+  assert.equal(parseBallotDurationMinutes("4"), null);
+  assert.equal(parseBallotDurationMinutes("5.5"), null);
+  assert.equal(parseBallotDurationMinutes("129601"), null);
 });
 
 test("detects whether proposal evidence still matches TruthFeed", () => {

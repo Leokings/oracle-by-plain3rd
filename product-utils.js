@@ -16,6 +16,13 @@ export function walletConnectionErrorMessage(error) {
   return `Wallet connection failed: ${detail}`;
 }
 
+export function parseBallotDurationMinutes(value) {
+  const minutes = Number(value);
+  return Number.isInteger(minutes) && minutes >= 5 && minutes <= 129_600
+    ? minutes
+    : null;
+}
+
 export function slugify(value) {
   return String(value || "")
     .toLowerCase()

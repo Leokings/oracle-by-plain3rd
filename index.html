@@ -7,10 +7,10 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://studio.genlayer.com https://livingconstitution-nine.vercel.app; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
     />
-    <title>Oracle by Plain3rd — Decisions powered by GenLayer</title>
+    <title>Oracle by Plain3rd — Evidence-led governance</title>
     <meta
       name="description"
-      content="Oracle by Plain3rd checks sourced questions and reviews proposals against shared rules on GenLayer StudioNet."
+      content="Oracle by Plain3rd connects sourced evidence, proposals, voting, and verified outcomes on GenLayer StudioNet."
     />
     <link
       rel="icon"
@@ -24,21 +24,19 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-page="home">
     <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="site-header">
-      <a class="brand" href="#top" aria-label="Oracle by Plain3rd home">
+      <a class="brand" href="index.html" aria-label="Oracle by Plain3rd home">
         <span class="brand-mark" aria-hidden="true"><span></span></span>
-        <span>
-          <strong>Oracle by Plain3rd</strong>
-          <small>powered by GenLayer</small>
-        </span>
+        <span><strong>Oracle by Plain3rd</strong><small>powered by GenLayer</small></span>
       </a>
       <nav class="nav-links" aria-label="Primary navigation">
-        <a href="#ask">Ask</a>
-        <a href="#govern">Govern</a>
-        <a href="#registry">Decisions</a>
+        <a href="evidence.html">Evidence</a>
+        <a href="proposals.html">Proposals</a>
+        <a href="governance.html">Governance</a>
+        <a href="decisions.html">Decisions</a>
         <a href="how-it-works.html">Guide</a>
       </nav>
       <div class="wallet-actions">
@@ -56,24 +54,24 @@
     </header>
 
     <main id="main">
-      <section class="hero" id="top" aria-labelledby="hero-title">
+      <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
           <p class="eyebrow">PUBLIC TESTNET · GENLAYER STUDIONET</p>
-          <h1 id="hero-title">Evidence. Decisions.<br /><span>Verified results.</span></h1>
+          <h1 id="hero-title">Facts first.<br /><span>Results verified.</span></h1>
           <p class="hero-lede">
-            TruthFeed proves the facts. Governance uses them, then checks what happened.
+            Prove the need, propose an action, vote, then check whether it worked.
           </p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#ask">Ask a question</a>
-            <a class="button button-secondary" href="#govern">Review proposals</a>
+            <a class="button button-primary" href="evidence.html">Start with evidence</a>
+            <a class="button button-secondary" href="proposals.html">Submit a proposal</a>
           </div>
         </div>
         <div class="hero-orbit" aria-hidden="true">
           <div class="orbit orbit-outer"></div>
           <div class="orbit orbit-inner"></div>
           <div class="orbit-core">O</div>
-          <div class="orbit-node orbit-truth"><span>Truth</span></div>
-          <div class="orbit-node orbit-govern"><span>Govern</span></div>
+          <div class="orbit-node orbit-truth"><span>Evidence</span></div>
+          <div class="orbit-node orbit-govern"><span>Vote</span></div>
         </div>
       </section>
 
@@ -84,217 +82,52 @@
         <div><strong>61999</strong><span>StudioNet chain</span></div>
       </section>
 
-      <section class="transaction-activity" id="transaction-activity" aria-labelledby="transaction-title" hidden>
-        <div class="transaction-activity-head">
-          <div>
-            <p class="eyebrow">SAVED WALLET ACTIVITY</p>
-            <h2 id="transaction-title">Transactions</h2>
-            <p>Saved in this browser.</p>
-          </div>
-          <div class="transaction-actions">
-            <button class="button button-quiet button-small" id="refresh-transactions" type="button">Refresh status</button>
-            <button class="text-button" id="dismiss-transactions" type="button">Dismiss completed</button>
-          </div>
-        </div>
-        <div class="transaction-list" id="transaction-list" aria-live="polite"></div>
-      </section>
-
-      <section class="workspace workspace-truth" id="ask" aria-labelledby="ask-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow eyebrow-cyan">EVIDENCE</p>
-            <h2 id="ask-title">Ask a question</h2>
-            <p>Set the question, decision rule, and public sources.</p>
-          </div>
-          <button class="button button-quiet" id="refresh-truth" type="button">Refresh questions</button>
-        </div>
-
-        <div class="workspace-grid">
-          <form class="form-panel" id="truth-form">
-            <div class="field">
-              <label for="q-text">Question</label>
-              <textarea
-                id="q-text"
-                maxlength="1000"
-                required
-                placeholder="Enter a question with a verifiable YES, NO, or UNCLEAR outcome."
-              ></textarea>
-            </div>
-            <div class="field">
-              <label for="q-criteria">Resolution rule</label>
-              <textarea
-                id="q-criteria"
-                maxlength="2000"
-                required
-                placeholder="Define exactly what evidence produces YES, NO, or UNCLEAR."
-              ></textarea>
-              <small>This rule controls the verdict.</small>
-            </div>
-            <div class="field">
-              <label for="q-resolve-after">Do not resolve before <span>(optional)</span></label>
-              <input id="q-resolve-after" type="datetime-local" />
-            </div>
-            <div class="field">
-              <div class="label-row">
-                <label>Public HTTPS evidence</label>
-                <button class="text-button" id="add-source" type="button">+ Add source</button>
-              </div>
-              <div id="source-inputs"></div>
-              <small>Add one to five public HTTPS URLs.</small>
-            </div>
-            <p class="form-error" id="truth-error" role="alert"></p>
-            <button class="button button-primary button-full" id="truth-submit" type="submit">
-              Post question on-chain
-            </button>
-          </form>
-
-          <div class="record-panel">
-            <div class="panel-kicker"><span class="live-dot"></span> Latest answers</div>
-            <div class="card-list" id="truth-feed" aria-live="polite">
-              <div class="loading-card">Loading TruthFeed from StudioNet…</div>
-            </div>
-          </div>
+      <section class="route-section" aria-labelledby="choose-title">
+        <p class="eyebrow">ONE PRODUCT · FOUR CLEAR STEPS</p>
+        <h2 id="choose-title">Choose what you want to do</h2>
+        <div class="route-grid">
+          <a class="route-card route-card-evidence" href="evidence.html">
+            <span>01</span>
+            <h3>Evidence</h3>
+            <p>Ask a sourced question and get a validator decision.</p>
+            <strong>Open Evidence →</strong>
+          </a>
+          <a class="route-card route-card-proposal" href="proposals.html">
+            <span>02</span>
+            <h3>Proposals</h3>
+            <p>Use resolved evidence to explain what should be done.</p>
+            <strong>Open Proposals →</strong>
+          </a>
+          <a class="route-card route-card-governance" href="governance.html">
+            <span>03</span>
+            <h3>Governance</h3>
+            <p>Review the rules, open ballots, vote, and verify results.</p>
+            <strong>Open Governance →</strong>
+          </a>
+          <a class="route-card" href="decisions.html">
+            <span>04</span>
+            <h3>Decisions</h3>
+            <p>Search the combined evidence and governance record.</p>
+            <strong>Open Decisions →</strong>
+          </a>
         </div>
       </section>
 
-      <section class="bridge" aria-label="Decision flow">
-        <span>Evidence</span><i></i><span>Review</span><i></i><span>Vote</span><i></i><span>Verify</span>
-      </section>
-
-      <section class="workspace workspace-govern" id="govern" aria-labelledby="govern-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow eyebrow-gold">GOVERNANCE</p>
-            <h2 id="govern-title">Review a proposal</h2>
-            <p>Submit, check against the charter, or vote in an open ballot.</p>
-          </div>
-          <button class="button button-quiet" id="refresh-governance" type="button">Refresh governance</button>
-        </div>
-
-        <div class="charter-panel">
-          <div>
-            <span class="panel-label">CURRENT CHARTER</span>
-            <span class="version-chip" id="charter-version">version —</span>
-          </div>
-          <details>
-            <summary>View governing rules</summary>
-            <ol id="charter-list"><li>Loading charter…</li></ol>
-          </details>
-        </div>
-
-        <div class="workspace-grid governance-grid">
-          <form class="form-panel" id="proposal-form">
-            <div class="field">
-              <label for="proposal-title">Proposal title</label>
-              <input
-                id="proposal-title"
-                maxlength="120"
-                required
-                placeholder="Name the proposed action"
-              />
-            </div>
-            <div class="field">
-              <label for="proposal-body">Proposal</label>
-              <textarea
-                id="proposal-body"
-                maxlength="2000"
-                required
-                placeholder="State the action, amount, beneficiaries, safeguards and reporting commitment."
-              ></textarea>
-            </div>
-            <fieldset class="linked-fields">
-              <legend>Evidence used</legend>
-              <div id="proposal-evidence-options" class="evidence-options">
-                <p class="evidence-empty">Loading resolved evidence…</p>
-              </div>
-              <small>Choose one to five resolved answers.</small>
-            </fieldset>
-            <fieldset class="linked-fields">
-              <legend>Outcome check</legend>
-              <div class="field">
-                <label for="verification-question">Question</label>
-                <textarea
-                  id="verification-question"
-                  maxlength="1000"
-                  required
-                  placeholder="How will we know the proposal worked?"
-                ></textarea>
-              </div>
-              <div class="field">
-                <label for="verification-criteria">Decision rule</label>
-                <textarea
-                  id="verification-criteria"
-                  maxlength="4000"
-                  required
-                  placeholder="Define exactly what produces YES, NO, or UNCLEAR."
-                ></textarea>
-              </div>
-              <div class="field">
-                <div class="label-row">
-                  <label>Public HTTPS sources</label>
-                  <button class="text-button" id="add-verification-source" type="button">+ Add source</button>
-                </div>
-                <div id="verification-source-inputs"></div>
-              </div>
-              <div class="field">
-                <label for="verification-delay-days">Check after <span>(days)</span></label>
-                <input id="verification-delay-days" type="number" min="0" max="365" step="1" value="0" required />
-              </div>
-            </fieldset>
-            <div class="explain-box">
-              Passed proposals automatically create the outcome check.
-            </div>
-            <p class="form-error" id="governance-error" role="alert"></p>
-            <button class="button button-gold button-full" id="governance-submit" type="submit">
-              Submit proposal on-chain
-            </button>
-          </form>
-
-          <div class="record-panel">
-            <div class="panel-kicker"><span class="live-dot live-dot-gold"></span> Proposal decisions</div>
-            <div class="card-list" id="proposal-list" aria-live="polite">
-              <div class="loading-card">Loading LivingConstitution from StudioNet…</div>
-            </div>
-          </div>
-        </div>
-
-      </section>
-
-      <section class="workspace registry-workspace" id="registry" aria-labelledby="registry-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">DECISIONS</p>
-            <h2 id="registry-title">Search every decision</h2>
-            <p>Questions and proposals in one place.</p>
-          </div>
-          <button class="button button-quiet" id="refresh-registry" type="button">Sync registry</button>
-        </div>
-        <div class="registry-controls">
-          <label>
-            <span>Search</span>
-            <input id="registry-search" type="search" placeholder="Question, proposal, case ID, decision…" />
-          </label>
-          <label>
-            <span>Source</span>
-            <select id="registry-source">
-              <option value="all">Both engines</option>
-              <option value="TruthFeed">Evidence decisions</option>
-              <option value="LivingConstitution">Governance decisions</option>
-            </select>
-          </label>
-          <div class="registry-count" id="registry-count">Loading registry…</div>
-        </div>
-        <div class="registry-list" id="registry-list" aria-live="polite"></div>
-        <p class="registry-note">
-          Rechecks and transaction finality are shown separately.
-        </p>
+      <section class="flow-summary" aria-label="Oracle decision flow">
+        <span>Evidence proves the need</span>
+        <i></i>
+        <span>A proposal defines the action</span>
+        <i></i>
+        <span>Governance votes</span>
+        <i></i>
+        <span>Evidence checks the result</span>
       </section>
     </main>
 
     <footer>
       <div>
         <span class="brand brand-footer"><span class="brand-mark" aria-hidden="true"><span></span></span><strong>Oracle by Plain3rd</strong></span>
-        <p>Evidence and governance on GenLayer.</p>
+        <p>Evidence-led governance on GenLayer.</p>
       </div>
       <div class="footer-links">
         <a href="how-it-works.html">Guide</a>

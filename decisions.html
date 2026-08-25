@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://studio.genlayer.com https://livingconstitution-nine.vercel.app; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+    />
+    <title>Decisions — Oracle by Plain3rd</title>
+    <meta name="description" content="Search Oracle evidence and governance decisions in one record." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23080712'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%238b5cf6' stroke-width='5'/%3E%3Ccircle cx='45' cy='19' r='5' fill='%232ee7d0'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="decisions">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Oracle by Plain3rd home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span><strong>Oracle by Plain3rd</strong><small>powered by GenLayer</small></span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="evidence.html">Evidence</a>
+        <a href="proposals.html">Proposals</a>
+        <a href="governance.html">Governance</a>
+        <a href="decisions.html" aria-current="page">Decisions</a>
+        <a href="how-it-works.html">Guide</a>
+      </nav>
+      <div class="wallet-actions">
+        <span class="network-pill" id="network-status" role="status">
+          <span class="status-dot"></span>Connecting
+        </span>
+        <button class="button button-primary button-small" id="connect-wallet" type="button">Connect wallet</button>
+        <span class="wallet-chip" id="wallet-chip" hidden>
+          <span id="wallet-address"></span>
+          <button id="disconnect-wallet" type="button">Disconnect</button>
+        </span>
+      </div>
+    </header>
+
+    <main class="route-page" id="main">
+      <section class="page-intro" aria-labelledby="page-title">
+        <p class="eyebrow">STEP 4 · DECISIONS</p>
+        <h1 id="page-title">One searchable record.</h1>
+        <p>Find evidence decisions, proposal reviews, and transaction finality without opening the work pages.</p>
+      </section>
+
+      <section class="workspace route-workspace registry-workspace" aria-labelledby="registry-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="registry-title">Search decisions</h2>
+            <p>Evidence and governance are indexed together.</p>
+          </div>
+          <button class="button button-quiet" id="refresh-registry" type="button">Sync registry</button>
+        </div>
+        <div class="registry-controls">
+          <label>
+            <span>Search</span>
+            <input id="registry-search" type="search" placeholder="Question, proposal, case ID, decision…" />
+          </label>
+          <label>
+            <span>Source</span>
+            <select id="registry-source">
+              <option value="all">Both engines</option>
+              <option value="TruthFeed">Evidence decisions</option>
+              <option value="LivingConstitution">Governance decisions</option>
+            </select>
+          </label>
+          <div class="registry-count" id="registry-count">Loading registry…</div>
+        </div>
+        <div class="registry-list" id="registry-list" aria-live="polite"></div>
+        <p class="registry-note">Rechecks and transaction finality are shown separately.</p>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        <span class="brand brand-footer"><span class="brand-mark" aria-hidden="true"><span></span></span><strong>Oracle by Plain3rd</strong></span>
+        <p>Evidence-led governance on GenLayer.</p>
+      </div>
+      <div class="footer-links">
+        <a href="how-it-works.html">Guide</a>
+        <a href="https://genlayer.com" target="_blank" rel="noreferrer">GenLayer</a>
+        <button id="copy-contracts" type="button">Copy contract addresses</button>
+      </div>
+    </footer>
+
+    <div class="toast-root" id="toast-root" aria-live="polite"></div>
+    <script src="config.js"></script>
+    <script type="module" src="app.bundle.js"></script>
+  </body>
+</html>

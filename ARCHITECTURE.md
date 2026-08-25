@@ -4,11 +4,12 @@
 Browser wallet
       |
       v
-Oracle by Plain3rd frontend (Vercel)
+Oracle by Plain3rd multi-page frontend (Vercel)
+Home | Evidence | Proposals | Governance | Decisions
       |-------------------------------|
       v                               v
 TruthFeed contract             LivingConstitution contract
-0x4207...c49a                  0xC4d9...EfF1
+0x7046...0773                  0x7e39...0Fda
       |                               |
       |---------------|---------------|
                       v

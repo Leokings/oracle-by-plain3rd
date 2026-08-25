@@ -15,6 +15,7 @@ import {
   newestFirst,
   normalizePage,
   olderPageWindow,
+  parseBallotDurationMinutes,
   shortAddress,
   splitCharter,
   walletConnectionErrorMessage,
@@ -51,6 +52,7 @@ const INITIAL_VISIBLE = 12;
 const VISIBLE_STEP = 12;
 const TRANSACTION_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_SOURCES = 5;
+const PAGE = document.body.dataset.page || "home";
 const IS_LOCAL = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
 const CONFIGURED =
   isConfiguredRpcUrl(CONFIG.RPC_URL) &&
@@ -596,6 +598,7 @@ async function refreshTruth() {
   state.truthOwner = String(ownership?.owner || "");
   renderEvidenceOptions();
   renderQuestions();
+  renderProposals();
   renderMetrics();
 }
 
@@ -695,18 +698,23 @@ async function refreshRegistry({ fresh = false } = {}) {
 
 async function refreshAll({ freshRegistry = false } = {}) {
   if (!CONFIGURED) {
-    $("network-status").classList.add("is-error");
-    $("network-status").lastChild.textContent = "Config error";
+    const status = $("network-status");
+    status?.classList.add("is-error");
+    if (status?.lastChild) status.lastChild.textContent = "Config error";
     toast("error", "Oracle by Plain3rd deployment configuration is incomplete.", 10000);
     return;
   }
-  const results = await Promise.allSettled([
-    refreshTruth(),
-    refreshGovernance(),
-    refreshRegistry({ fresh: freshRegistry }),
-  ]);
+  const refreshers = {
+    home: [refreshTruth, refreshGovernance, () => refreshRegistry({ fresh: freshRegistry })],
+    evidence: [refreshTruth, () => refreshRegistry({ fresh: freshRegistry })],
+    proposals: [refreshTruth, () => refreshRegistry({ fresh: freshRegistry })],
+    governance: [refreshTruth, refreshGovernance, () => refreshRegistry({ fresh: freshRegistry })],
+    decisions: [() => refreshRegistry({ fresh: freshRegistry })],
+  }[PAGE] || [];
+  const results = await Promise.allSettled(refreshers.map((refresh) => refresh()));
   const failures = results.filter((result) => result.status === "rejected");
   const status = $("network-status");
+  if (!status) return;
   status.classList.toggle("is-live", failures.length < results.length);
   status.classList.toggle("is-error", failures.length === results.length);
   status.lastChild.textContent = failures.length === results.length ? "Unavailable" : "Live · StudioNet";
@@ -716,9 +724,12 @@ async function refreshAll({ freshRegistry = false } = {}) {
 }
 
 function renderMetrics() {
-  $("truth-count").textContent = `${state.questions.length}${state.questionOffset > 0 ? "+" : ""}`;
-  $("proposal-count").textContent = `${state.proposals.length}${state.proposalOffset > 0 ? "+" : ""}`;
-  $("final-count").textContent = String(state.registry.filter((item) => item.finality?.final).length);
+  const truthCount = $("truth-count");
+  const proposalCount = $("proposal-count");
+  const finalCount = $("final-count");
+  if (truthCount) truthCount.textContent = `${state.questions.length}${state.questionOffset > 0 ? "+" : ""}`;
+  if (proposalCount) proposalCount.textContent = `${state.proposals.length}${state.proposalOffset > 0 ? "+" : ""}`;
+  if (finalCount) finalCount.textContent = String(state.registry.filter((item) => item.finality?.final).length);
 }
 
 function appendFinality(card, kind, caseId) {
@@ -906,8 +917,10 @@ function renderQuestions() {
 }
 
 function renderCharter() {
-  $("charter-version").textContent = `version ${state.constitutionVersion || "—"}`;
+  const version = $("charter-version");
   const list = $("charter-list");
+  if (!version || !list) return;
+  version.textContent = `version ${state.constitutionVersion || "—"}`;
   list.replaceChildren();
   const articles = splitCharter(state.constitution);
   if (!articles.length) {
@@ -953,7 +966,7 @@ function renderProposals() {
         const snapshot = proposal.evidence_snapshot.find((item) => String(item?.id || "") === evidenceId);
         const item = document.createElement("li");
         const link = document.createElement("a");
-        link.href = "#ask";
+        link.href = "evidence.html";
         link.textContent = evidenceId;
         item.append(link, textElement("span", "", snapshot?.outcome ? ` · ${String(snapshot.outcome).toUpperCase()}` : " · awaiting review"));
         evidenceList.appendChild(item);
@@ -1089,16 +1102,20 @@ function renderProposals() {
 }
 
 function renderRegistry() {
-  const query = $("registry-search").value.trim().toLowerCase();
-  const source = $("registry-source").value;
+  const search = $("registry-search");
+  const sourceControl = $("registry-source");
+  const count = $("registry-count");
+  const container = $("registry-list");
+  if (!search || !sourceControl || !count || !container) return;
+  const query = search.value.trim().toLowerCase();
+  const source = sourceControl.value;
   const items = state.registry.filter((item) => {
     if (source !== "all" && item.source_name !== source) return false;
     if (!query) return true;
     return [item.title, item.content, item.case_id, item.status, item.decision, item.source_name]
       .some((value) => String(value || "").toLowerCase().includes(query));
   });
-  $("registry-count").textContent = `${items.length} of ${state.registry.length} indexed decisions`;
-  const container = $("registry-list");
+  count.textContent = `${items.length} of ${state.registry.length} indexed decisions`;
   container.replaceChildren();
   if (!items.length) {
     const message = state.registryWarning || (
@@ -1127,6 +1144,7 @@ function renderRegistry() {
 
 function addUrlRow({ containerId, inputClass, label, value = "" }) {
   const container = $(containerId);
+  if (!container) return;
   if (container.children.length >= MAX_SOURCES) return;
   const row = document.createElement("div");
   row.className = "source-row";
@@ -1401,11 +1419,21 @@ async function recheckProposal(id) {
 }
 
 async function openBallot(id) {
-  const quorumValue = window.prompt("Minimum number of wallets required for this 24-hour ballot:", "3");
+  const quorumValue = window.prompt("Minimum number of wallets required for this ballot:", "3");
   if (quorumValue === null) return;
   const quorum = Number(quorumValue);
   if (!Number.isInteger(quorum) || quorum < 1 || quorum > 1_000_000) {
     toast("error", "Quorum must be a whole number from 1 to 1,000,000.");
+    return;
+  }
+  const durationValue = window.prompt(
+    "Ballot duration in minutes (5 minimum; 1440 is 24 hours):",
+    "1440",
+  );
+  if (durationValue === null) return;
+  const durationMinutes = parseBallotDurationMinutes(durationValue);
+  if (durationMinutes === null) {
+    toast("error", "Ballot duration must be a whole number from 5 to 129,600 minutes.");
     return;
   }
   try {
@@ -1415,7 +1443,7 @@ async function openBallot(id) {
       caseId: id,
       operation: "open_ballot",
       method: "open_ballot",
-      args: [id, Math.floor(Date.now() / 1000) + 86400, quorum],
+      args: [id, Math.floor(Date.now() / 1000) + durationMinutes * 60, quorum],
     });
     await Promise.all([refreshGovernance(), refreshRegistry({ fresh: true })]);
   } catch (error) {
@@ -1492,15 +1520,20 @@ function setRefreshBusy(button, busy, label) {
   button.textContent = busy ? "Refreshing…" : label;
 }
 
-$("connect-wallet").addEventListener("click", connectWallet);
-$("disconnect-wallet").addEventListener("click", disconnectWallet);
-$("truth-form").addEventListener("submit", submitTruth);
-$("proposal-form").addEventListener("submit", submitProposal);
-$("add-source").addEventListener("click", () => addSourceRow());
-$("add-verification-source").addEventListener("click", () => addVerificationSourceRow());
-$("registry-search").addEventListener("input", renderRegistry);
-$("registry-source").addEventListener("change", renderRegistry);
-$("copy-contracts").addEventListener("click", async () => {
+function bind(id, eventName, handler) {
+  const element = $(id);
+  if (element) element.addEventListener(eventName, handler);
+}
+
+bind("connect-wallet", "click", connectWallet);
+bind("disconnect-wallet", "click", disconnectWallet);
+bind("truth-form", "submit", submitTruth);
+bind("proposal-form", "submit", submitProposal);
+bind("add-source", "click", () => addSourceRow());
+bind("add-verification-source", "click", () => addVerificationSourceRow());
+bind("registry-search", "input", renderRegistry);
+bind("registry-source", "change", renderRegistry);
+bind("copy-contracts", "click", async () => {
   const text = `TruthFeed: ${CONFIG.TRUTH_CONTRACT_ADDRESS}\nLivingConstitution: ${CONFIG.LIVING_CONTRACT_ADDRESS}`;
   try {
     await navigator.clipboard.writeText(text);
@@ -1510,47 +1543,54 @@ $("copy-contracts").addEventListener("click", async () => {
   }
 });
 
-$("refresh-truth").addEventListener("click", async (event) => {
+bind("refresh-truth", "click", async (event) => {
   setRefreshBusy(event.currentTarget, true, "Refresh questions");
   try { await refreshTruth(); } catch (error) { toast("error", errMsg(error)); }
   finally { setRefreshBusy(event.currentTarget, false, "Refresh questions"); }
 });
-$("refresh-governance").addEventListener("click", async (event) => {
+bind("refresh-governance", "click", async (event) => {
   setRefreshBusy(event.currentTarget, true, "Refresh governance");
   try { await refreshGovernance(); } catch (error) { toast("error", errMsg(error)); }
   finally { setRefreshBusy(event.currentTarget, false, "Refresh governance"); }
 });
-$("refresh-registry").addEventListener("click", async (event) => {
+bind("refresh-registry", "click", async (event) => {
   setRefreshBusy(event.currentTarget, true, "Sync registry");
   try { await refreshRegistry({ fresh: true }); } catch (error) { toast("error", errMsg(error)); }
   finally { setRefreshBusy(event.currentTarget, false, "Sync registry"); }
 });
-$("refresh-transactions").addEventListener("click", async (event) => {
+bind("refresh-transactions", "click", async (event) => {
   setRefreshBusy(event.currentTarget, true, "Refresh status");
   try { await refreshTrackedTransactions({ announce: true }); }
   finally { setRefreshBusy(event.currentTarget, false, "Refresh status"); }
 });
-$("dismiss-transactions").addEventListener("click", () => {
+bind("dismiss-transactions", "click", () => {
   const active = readTrackedTransactions().filter(
     (item) => !["FINALIZED", "FAILED", "CANCELED"].includes(String(item.status || "").toUpperCase()),
   );
   writeTrackedTransactions(active);
 });
 
-addSourceRow();
-addVerificationSourceRow();
+if ($("source-inputs")) addSourceRow();
+if ($("verification-source-inputs")) addVerificationSourceRow();
 renderWallet();
 renderTransactionActivity();
 if (window.ethereum) bindWalletEvents(window.ethereum);
 refreshAll();
-refreshTrackedTransactions().catch(() => {});
+if ($("transaction-activity")) refreshTrackedTransactions().catch(() => {});
 
 window.setInterval(() => {
-  if (document.visibilityState === "visible") refreshRegistry({ fresh: false }).catch(() => {});
+  if (
+    document.visibilityState === "visible" &&
+    ["home", "evidence", "governance", "decisions"].includes(PAGE)
+  ) refreshRegistry({ fresh: false }).catch(() => {});
 }, 60_000);
 
 window.setInterval(() => {
-  if (document.visibilityState === "visible" && readTrackedTransactions().length) {
+  if (
+    $("transaction-activity") &&
+    document.visibilityState === "visible" &&
+    readTrackedTransactions().length
+  ) {
     refreshTrackedTransactions().catch(() => {});
   }
 }, 15_000);

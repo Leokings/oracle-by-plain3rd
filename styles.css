@@ -107,7 +107,7 @@ button { color: inherit; }
 }
 .brand-mark span { width: 10px; height: 10px; border-radius: 50%; background: var(--purple-light); }
 
-.nav-links { display: flex; align-items: center; gap: 1.7rem; }
+.nav-links { display: flex; align-items: center; gap: 1.2rem; }
 .nav-links a {
   color: var(--muted);
   font-size: 0.88rem;
@@ -257,6 +257,106 @@ main { overflow: hidden; }
 .system-strip div:last-child { border-right: 0; }
 .system-strip strong { font: 700 1.6rem "Manrope", sans-serif; }
 .system-strip span { color: var(--muted); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; }
+
+.route-section, .flow-summary, .page-intro {
+  width: min(var(--max), calc(100% - 2.5rem));
+  margin-inline: auto;
+}
+.route-section { padding: 1rem 0 6rem; }
+.route-section > h2 {
+  margin: 0;
+  font: 800 clamp(2rem, 4.5vw, 3.35rem)/1.05 "Manrope", sans-serif;
+  letter-spacing: -0.045em;
+}
+.route-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 2rem;
+}
+.route-card {
+  display: flex;
+  min-height: 265px;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.35rem;
+  background: linear-gradient(145deg, rgba(24, 21, 45, 0.9), rgba(13, 11, 26, 0.96));
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+.route-card:hover { transform: translateY(-3px); border-color: var(--purple); }
+.route-card > span { color: var(--muted); font: 800 0.68rem "Manrope", sans-serif; letter-spacing: 0.12em; }
+.route-card h3 { margin: 2rem 0 0; font: 750 1.35rem "Manrope", sans-serif; }
+.route-card p { margin: 0.7rem 0 1.5rem; color: var(--muted); font-size: 0.85rem; }
+.route-card strong { margin-top: auto; color: var(--purple-light); font-size: 0.78rem; }
+.route-card-evidence strong { color: var(--cyan); }
+.route-card-governance strong { color: var(--gold); }
+.flow-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-bottom: 6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  background: rgba(18, 16, 34, 0.64);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+.flow-summary i { width: 24px; height: 1px; flex: 0 0 auto; background: var(--purple); }
+
+.route-page { min-height: calc(100vh - 76px); }
+.page-intro { padding: 6.5rem 0 2.8rem; }
+.page-intro h1 {
+  max-width: 900px;
+  margin: 0;
+  font: 800 clamp(2.7rem, 6vw, 5.3rem)/1 "Manrope", sans-serif;
+  letter-spacing: -0.06em;
+}
+.page-intro > p:last-child {
+  max-width: 720px;
+  margin: 1.2rem 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+.route-workspace { padding-top: 1.5rem; }
+.route-page .transaction-activity { margin: 0 auto 1rem; }
+.proposal-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 0.38fr);
+  align-items: start;
+  gap: 1.1rem;
+}
+.route-aside {
+  position: sticky;
+  top: 96px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.35rem;
+  background: rgba(18, 16, 34, 0.82);
+}
+.route-aside h3 { margin: 0; font: 750 1.15rem "Manrope", sans-serif; }
+.route-aside ol { display: grid; gap: 0.75rem; margin: 1rem 0 1.3rem; padding-left: 1.2rem; color: var(--muted); font-size: 0.8rem; }
+.route-aside a { color: var(--cyan); font-size: 0.78rem; font-weight: 700; }
+.governance-records { min-height: 300px; }
+.next-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 0.9rem 1rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.route-page .registry-workspace { margin-block: 1.5rem 6rem; }
 
 .transaction-activity { margin: -4.3rem auto 1rem; border: 1px solid rgba(139, 92, 246, 0.34); border-radius: var(--radius); padding: 1.15rem 1.3rem; background: rgba(18, 16, 34, 0.84); }
 .transaction-activity-head { display: flex; align-items: start; justify-content: space-between; gap: 1.5rem; }
@@ -421,22 +521,40 @@ footer p { margin: 0.55rem 0 0; color: var(--muted); font-size: 0.78rem; }
 .boundary-note { border-left: 2px solid var(--gold); padding-left: 0.8rem; color: var(--muted); font-size: 0.8rem; }
 
 @media (max-width: 980px) {
-  .site-header { grid-template-columns: 1fr auto; }
-  .nav-links { display: none; }
+  .site-header {
+    grid-template-columns: 1fr auto;
+    padding-top: 0.65rem;
+  }
+  .site-header > .brand { grid-column: 1; grid-row: 1; }
+  .wallet-actions { grid-column: 2; grid-row: 1; }
+  .nav-links {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    padding: 0.55rem 0 0.7rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
   .hero { grid-template-columns: 1fr; min-height: 0; padding-top: 5rem; }
   .hero-orbit { width: min(390px, 86vw); margin: 4rem auto 0; justify-self: center; }
   .workspace-grid { grid-template-columns: 1fr; }
   .record-panel { min-height: 0; }
   .registry-list { grid-template-columns: 1fr; }
   .transaction-list { grid-template-columns: 1fr; }
+  .route-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .proposal-shell { grid-template-columns: 1fr; }
+  .route-aside { position: static; }
 }
 
 @media (max-width: 700px) {
-  .site-header { min-height: 66px; padding: 0 1rem; }
+  .site-header { min-height: 0; padding: 0.65rem 1rem 0; }
   .brand small, .network-pill { display: none; }
+  .nav-links { gap: 1rem; }
+  .nav-links a { font-size: 0.75rem; white-space: nowrap; }
   .button-small { font-size: 0.72rem; }
   .wallet-chip { gap: 0.35rem; padding-left: 0.55rem; }
-  .hero, .workspace, .system-strip, .transaction-activity, .bridge, footer, .article-page { width: min(100% - 1.25rem, var(--max)); }
+  .hero, .workspace, .system-strip, .transaction-activity, .bridge, footer, .article-page, .route-section, .flow-summary, .page-intro { width: min(100% - 1.25rem, var(--max)); }
   .hero { padding-top: 4rem; }
   .hero h1 { font-size: clamp(2.75rem, 14vw, 4.2rem); }
   .hero-orbit { width: min(330px, 88vw); }
@@ -455,6 +573,12 @@ footer p { margin: 0.55rem 0 0; color: var(--muted); font-size: 0.78rem; }
   .registry-count { text-align: left; }
   .trust-grid { grid-template-columns: 1fr; }
   .deployment-list > div { grid-template-columns: 1fr; gap: 0.2rem; }
+  .route-grid { grid-template-columns: 1fr; }
+  .route-card { min-height: 215px; }
+  .flow-summary { align-items: stretch; flex-direction: column; }
+  .flow-summary i { width: 1px; height: 16px; margin: 0 auto; }
+  .page-intro { padding-top: 4.5rem; }
+  .next-step { align-items: stretch; flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {

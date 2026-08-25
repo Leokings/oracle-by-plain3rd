@@ -64,7 +64,15 @@ if (process.env.VERCEL === "1") {
 
 await rm(outputDir, { recursive: true, force: true });
 await mkdir(outputDir, { recursive: true });
-for (const filename of ["index.html", "how-it-works.html", "styles.css"]) {
+for (const filename of [
+  "index.html",
+  "evidence.html",
+  "proposals.html",
+  "governance.html",
+  "decisions.html",
+  "how-it-works.html",
+  "styles.css",
+]) {
   await copyFile(join(projectDir, filename), join(outputDir, filename));
 }
 await copyFile(bundlePath, join(outputDir, "app.bundle.js"));

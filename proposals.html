@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://studio.genlayer.com https://livingconstitution-nine.vercel.app; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+    />
+    <title>Proposals — Oracle by Plain3rd</title>
+    <meta name="description" content="Create an evidence-backed governance proposal on GenLayer StudioNet." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23080712'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%238b5cf6' stroke-width='5'/%3E%3Ccircle cx='45' cy='19' r='5' fill='%232ee7d0'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="proposals">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Oracle by Plain3rd home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span><strong>Oracle by Plain3rd</strong><small>powered by GenLayer</small></span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="evidence.html">Evidence</a>
+        <a href="proposals.html" aria-current="page">Proposals</a>
+        <a href="governance.html">Governance</a>
+        <a href="decisions.html">Decisions</a>
+        <a href="how-it-works.html">Guide</a>
+      </nav>
+      <div class="wallet-actions">
+        <span class="network-pill" id="network-status" role="status">
+          <span class="status-dot"></span>Connecting
+        </span>
+        <button class="button button-primary button-small" id="connect-wallet" type="button">Connect wallet</button>
+        <span class="wallet-chip" id="wallet-chip" hidden>
+          <span id="wallet-address"></span>
+          <button id="disconnect-wallet" type="button">Disconnect</button>
+        </span>
+      </div>
+    </header>
+
+    <main class="route-page" id="main">
+      <section class="page-intro" aria-labelledby="page-title">
+        <p class="eyebrow">STEP 2 · PROPOSALS</p>
+        <h1 id="page-title">Turn evidence into an action.</h1>
+        <p>Explain what should happen, attach resolved facts, and define success before voting starts.</p>
+      </section>
+
+      <section class="transaction-activity" id="transaction-activity" aria-labelledby="transaction-title" hidden>
+        <div class="transaction-activity-head">
+          <div>
+            <p class="eyebrow">SAVED WALLET ACTIVITY</p>
+            <h2 id="transaction-title">Transactions</h2>
+            <p>Saved in this browser.</p>
+          </div>
+          <div class="transaction-actions">
+            <button class="button button-quiet button-small" id="refresh-transactions" type="button">Refresh status</button>
+            <button class="text-button" id="dismiss-transactions" type="button">Dismiss completed</button>
+          </div>
+        </div>
+        <div class="transaction-list" id="transaction-list" aria-live="polite"></div>
+      </section>
+
+      <section class="workspace route-workspace" aria-labelledby="proposal-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="proposal-heading">Submit a proposal</h2>
+            <p>The outcome check is created automatically only if the ballot passes.</p>
+          </div>
+        </div>
+
+        <div class="proposal-shell">
+          <form class="form-panel" id="proposal-form">
+            <div class="field">
+              <label for="proposal-title">Proposal title</label>
+              <input
+                id="proposal-title"
+                maxlength="120"
+                required
+                placeholder="Name the proposed action"
+              />
+            </div>
+            <div class="field">
+              <label for="proposal-body">Proposal</label>
+              <textarea
+                id="proposal-body"
+                maxlength="2000"
+                required
+                placeholder="State the action, amount, beneficiaries, safeguards and reporting commitment."
+              ></textarea>
+            </div>
+            <fieldset class="linked-fields">
+              <legend>Evidence used</legend>
+              <div id="proposal-evidence-options" class="evidence-options">
+                <p class="evidence-empty">Loading resolved evidence…</p>
+              </div>
+              <small>Choose one to five resolved answers.</small>
+            </fieldset>
+            <fieldset class="linked-fields">
+              <legend>Outcome check</legend>
+              <div class="field">
+                <label for="verification-question">Question</label>
+                <textarea
+                  id="verification-question"
+                  maxlength="1000"
+                  required
+                  placeholder="How will we know the proposal worked?"
+                ></textarea>
+              </div>
+              <div class="field">
+                <label for="verification-criteria">Decision rule</label>
+                <textarea
+                  id="verification-criteria"
+                  maxlength="4000"
+                  required
+                  placeholder="Define exactly what produces YES, NO, or UNCLEAR."
+                ></textarea>
+              </div>
+              <div class="field">
+                <div class="label-row">
+                  <label>Public HTTPS sources</label>
+                  <button class="text-button" id="add-verification-source" type="button">+ Add source</button>
+                </div>
+                <div id="verification-source-inputs"></div>
+              </div>
+              <div class="field">
+                <label for="verification-delay-days">Check after <span>(days)</span></label>
+                <input id="verification-delay-days" type="number" min="0" max="365" step="1" value="0" required />
+              </div>
+            </fieldset>
+            <p class="form-error" id="governance-error" role="alert"></p>
+            <button class="button button-gold button-full" id="governance-submit" type="submit">
+              Submit proposal on-chain
+            </button>
+          </form>
+
+          <aside class="route-aside">
+            <p class="eyebrow eyebrow-cyan">BEFORE YOU SUBMIT</p>
+            <h3>Use facts, not promises.</h3>
+            <ol>
+              <li>Select evidence that proves why action is needed.</li>
+              <li>State who benefits, any cost, and the safeguards.</li>
+              <li>Make the outcome question different from the starting evidence.</li>
+            </ol>
+            <a href="evidence.html">Need evidence first? Open Evidence →</a>
+          </aside>
+        </div>
+
+        <div class="next-step">
+          <span>Proposal submitted?</span>
+          <a class="button button-secondary button-small" href="governance.html">Review and vote →</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        <span class="brand brand-footer"><span class="brand-mark" aria-hidden="true"><span></span></span><strong>Oracle by Plain3rd</strong></span>
+        <p>Evidence-led governance on GenLayer.</p>
+      </div>
+      <div class="footer-links">
+        <a href="how-it-works.html">Guide</a>
+        <a href="https://genlayer.com" target="_blank" rel="noreferrer">GenLayer</a>
+        <button id="copy-contracts" type="button">Copy contract addresses</button>
+      </div>
+    </footer>
+
+    <div class="toast-root" id="toast-root" aria-live="polite"></div>
+    <script src="config.js"></script>
+    <script type="module" src="app.bundle.js"></script>
+  </body>
+</html>

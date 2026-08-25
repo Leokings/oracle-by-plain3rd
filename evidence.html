@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://studio.genlayer.com https://livingconstitution-nine.vercel.app; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+    />
+    <title>Evidence — Oracle by Plain3rd</title>
+    <meta name="description" content="Ask sourced questions and resolve them with GenLayer validators." />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23080712'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%238b5cf6' stroke-width='5'/%3E%3Ccircle cx='45' cy='19' r='5' fill='%232ee7d0'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="evidence">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Oracle by Plain3rd home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span><strong>Oracle by Plain3rd</strong><small>powered by GenLayer</small></span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="evidence.html" aria-current="page">Evidence</a>
+        <a href="proposals.html">Proposals</a>
+        <a href="governance.html">Governance</a>
+        <a href="decisions.html">Decisions</a>
+        <a href="how-it-works.html">Guide</a>
+      </nav>
+      <div class="wallet-actions">
+        <span class="network-pill" id="network-status" role="status">
+          <span class="status-dot"></span>Connecting
+        </span>
+        <button class="button button-primary button-small" id="connect-wallet" type="button">Connect wallet</button>
+        <span class="wallet-chip" id="wallet-chip" hidden>
+          <span id="wallet-address"></span>
+          <button id="disconnect-wallet" type="button">Disconnect</button>
+        </span>
+      </div>
+    </header>
+
+    <main class="route-page" id="main">
+      <section class="page-intro" aria-labelledby="page-title">
+        <p class="eyebrow eyebrow-cyan">STEP 1 · EVIDENCE</p>
+        <h1 id="page-title">Prove the starting facts.</h1>
+        <p>Ask one clear question, define the decision rule, and provide public sources.</p>
+      </section>
+
+      <section class="transaction-activity" id="transaction-activity" aria-labelledby="transaction-title" hidden>
+        <div class="transaction-activity-head">
+          <div>
+            <p class="eyebrow">SAVED WALLET ACTIVITY</p>
+            <h2 id="transaction-title">Transactions</h2>
+            <p>Saved in this browser.</p>
+          </div>
+          <div class="transaction-actions">
+            <button class="button button-quiet button-small" id="refresh-transactions" type="button">Refresh status</button>
+            <button class="text-button" id="dismiss-transactions" type="button">Dismiss completed</button>
+          </div>
+        </div>
+        <div class="transaction-list" id="transaction-list" aria-live="polite"></div>
+      </section>
+
+      <section class="workspace route-workspace" aria-labelledby="ask-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="ask-title">Ask a question</h2>
+            <p>Resolved answers become evidence that proposals can use.</p>
+          </div>
+          <button class="button button-quiet" id="refresh-truth" type="button">Refresh questions</button>
+        </div>
+
+        <div class="workspace-grid">
+          <form class="form-panel" id="truth-form">
+            <div class="field">
+              <label for="q-text">Question</label>
+              <textarea
+                id="q-text"
+                maxlength="1000"
+                required
+                placeholder="Enter a question with a verifiable YES, NO, or UNCLEAR outcome."
+              ></textarea>
+            </div>
+            <div class="field">
+              <label for="q-criteria">Resolution rule</label>
+              <textarea
+                id="q-criteria"
+                maxlength="2000"
+                required
+                placeholder="Define exactly what evidence produces YES, NO, or UNCLEAR."
+              ></textarea>
+              <small>This rule controls the verdict.</small>
+            </div>
+            <div class="field">
+              <label for="q-resolve-after">Do not resolve before <span>(optional)</span></label>
+              <input id="q-resolve-after" type="datetime-local" />
+            </div>
+            <div class="field">
+              <div class="label-row">
+                <label>Public HTTPS evidence</label>
+                <button class="text-button" id="add-source" type="button">+ Add source</button>
+              </div>
+              <div id="source-inputs"></div>
+              <small>Add one to five public HTTPS URLs.</small>
+            </div>
+            <p class="form-error" id="truth-error" role="alert"></p>
+            <button class="button button-primary button-full" id="truth-submit" type="submit">
+              Post question on-chain
+            </button>
+          </form>
+
+          <div class="record-panel">
+            <div class="panel-kicker"><span class="live-dot"></span> Latest answers</div>
+            <div class="card-list" id="truth-feed" aria-live="polite">
+              <div class="loading-card">Loading Evidence from StudioNet…</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="next-step">
+          <span>Evidence resolved?</span>
+          <a class="button button-secondary button-small" href="proposals.html">Use it in a proposal →</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        <span class="brand brand-footer"><span class="brand-mark" aria-hidden="true"><span></span></span><strong>Oracle by Plain3rd</strong></span>
+        <p>Evidence-led governance on GenLayer.</p>
+      </div>
+      <div class="footer-links">
+        <a href="how-it-works.html">Guide</a>
+        <a href="https://genlayer.com" target="_blank" rel="noreferrer">GenLayer</a>
+        <button id="copy-contracts" type="button">Copy contract addresses</button>
+      </div>
+    </footer>
+
+    <div class="toast-root" id="toast-root" aria-live="polite"></div>
+    <script src="config.js"></script>
+    <script type="module" src="app.bundle.js"></script>
+  </body>
+</html>

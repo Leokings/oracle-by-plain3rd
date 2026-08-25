@@ -11,7 +11,13 @@ contracts:
 4. The verified result is copied back into the proposal record.
 
 The contracts remain separate because they have different jobs and permissions,
-but they now call each other and form one evidence-to-outcome loop.
+but they now call each other and form one evidence-to-outcome loop. The frontend
+keeps each job on its own page:
+
+- **Evidence** asks and resolves sourced questions.
+- **Proposals** turns resolved evidence into a proposed action.
+- **Governance** reviews, votes, and verifies the outcome.
+- **Decisions** searches the combined record.
 
 Live product: [https://oracle-by-plain3rd.vercel.app](https://oracle-by-plain3rd.vercel.app)
 
