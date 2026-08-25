@@ -15,6 +15,7 @@ import {
   shortAddress,
   splitCharter,
   slugify,
+  walletConnectionErrorMessage,
 } from "../product-utils.js";
 
 
@@ -84,6 +85,18 @@ test("formats compact addresses and registry finality", () => {
   assert.equal(shortAddress("0x1111111111111111111111111111111111111111"), "0x11111…11111");
   assert.equal(finalityLabel({ finality: { label: "Final" } }), "Final");
   assert.equal(finalityLabel(null), "Not tracked");
+});
+
+test("turns wallet provider failures into clear next steps", () => {
+  assert.equal(
+    walletConnectionErrorMessage({ code: -32002 }),
+    "A wallet request is already open. Open your wallet extension and finish it.",
+  );
+  assert.equal(walletConnectionErrorMessage({ code: 4001 }), "Wallet connection was declined.");
+  assert.equal(
+    walletConnectionErrorMessage({ message: "Provider unavailable" }),
+    "Wallet connection failed: Provider unavailable",
+  );
 });
 
 test("detects whether proposal evidence still matches TruthFeed", () => {

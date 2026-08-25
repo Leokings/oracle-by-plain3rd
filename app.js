@@ -17,6 +17,7 @@ import {
   olderPageWindow,
   shortAddress,
   splitCharter,
+  walletConnectionErrorMessage,
 } from "./product-utils.js";
 import {
   isConfiguredAddress,
@@ -88,6 +89,7 @@ const readClient = CONFIGURED
 let writeClient = null;
 let writeClientAddress = "";
 let walletEventsBound = false;
+let walletConnectInFlight = false;
 let volatileTrackedTransactions = [];
 let trackedStorageAvailable = true;
 
@@ -319,31 +321,72 @@ function bindWalletEvents(provider) {
   });
 }
 
+async function waitForWalletProvider(timeoutMs = 2500) {
+  if (window.ethereum?.request) return window.ethereum;
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (provider) => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener("ethereum#initialized", onInitialized);
+      window.clearInterval(pollId);
+      window.clearTimeout(timeoutId);
+      resolve(provider?.request ? provider : null);
+    };
+    const onInitialized = () => finish(window.ethereum);
+    window.addEventListener("ethereum#initialized", onInitialized, { once: true });
+    const pollId = window.setInterval(() => {
+      if (window.ethereum?.request) finish(window.ethereum);
+    }, 100);
+    const timeoutId = window.setTimeout(() => finish(window.ethereum), timeoutMs);
+  });
+}
+
+function setWalletConnectBusy(busy, label = "Connect wallet") {
+  const button = $("connect-wallet");
+  button.disabled = busy;
+  button.setAttribute("aria-busy", String(busy));
+  button.textContent = label;
+}
+
 async function connectWallet() {
-  const provider = window.ethereum;
-  if (!provider) {
-    toast("error", "No browser wallet found. Install MetaMask and create a StudioNet-only test account.");
+  if (walletConnectInFlight) {
+    toast("info", "A wallet request is already open. Check your wallet extension.");
     return;
   }
-  let accounts;
+  walletConnectInFlight = true;
+  setWalletConnectBusy(true, "Open wallet…");
+  toast("info", "Check your wallet extension and approve the connection.", 10000);
   try {
-    accounts = await provider.request({ method: "eth_requestAccounts" });
-  } catch (error) {
-    toast("error", `Wallet connection was not approved: ${errMsg(error)}`);
-    return;
+    const provider = await waitForWalletProvider();
+    if (!provider) {
+      toast("error", "No browser wallet found. Install MetaMask and create a StudioNet-only test account.");
+      return;
+    }
+    let accounts;
+    try {
+      accounts = await provider.request({ method: "eth_requestAccounts" });
+    } catch (error) {
+      toast("error", walletConnectionErrorMessage(error));
+      return;
+    }
+    if (!Array.isArray(accounts) || !accounts[0]) {
+      toast("error", "The wallet did not provide an account.");
+      return;
+    }
+    setWalletConnectBusy(true, "Switch network…");
+    if (!(await ensureStudioNetwork(provider))) {
+      toast("error", "StudioNet was not confirmed. Add chain 61999 and try again.");
+      return;
+    }
+    sessionStorage.setItem(WALLET_KEY, JSON.stringify({ address: accounts[0] }));
+    bindWalletEvents(provider);
+    renderWallet();
+    toast("success", `Connected ${shortAddress(accounts[0])} on StudioNet.`);
+  } finally {
+    walletConnectInFlight = false;
+    setWalletConnectBusy(false);
   }
-  if (!Array.isArray(accounts) || !accounts[0]) {
-    toast("error", "The wallet did not provide an account.");
-    return;
-  }
-  if (!(await ensureStudioNetwork(provider))) {
-    toast("error", "StudioNet was not confirmed. Add chain 61999 and try again.");
-    return;
-  }
-  sessionStorage.setItem(WALLET_KEY, JSON.stringify({ address: accounts[0] }));
-  bindWalletEvents(provider);
-  renderWallet();
-  toast("success", `Connected ${shortAddress(accounts[0])} on StudioNet.`);
 }
 
 function disconnectWallet() {

@@ -6,6 +6,16 @@ export function shortAddress(value) {
   return address.length > 14 ? `${address.slice(0, 7)}…${address.slice(-5)}` : address;
 }
 
+export function walletConnectionErrorMessage(error) {
+  const code = Number(error?.code ?? error?.data?.originalError?.code);
+  if (code === -32002) {
+    return "A wallet request is already open. Open your wallet extension and finish it.";
+  }
+  if (code === 4001) return "Wallet connection was declined.";
+  const detail = String(error?.shortMessage || error?.message || error || "Unknown wallet error");
+  return `Wallet connection failed: ${detail}`;
+}
+
 export function slugify(value) {
   return String(value || "")
     .toLowerCase()
