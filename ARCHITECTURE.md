@@ -9,7 +9,7 @@ Home | Evidence | Proposals | Governance | Decisions
       |-------------------------------|
       v                               v
 TruthFeed contract             LivingConstitution contract
-0x7046...0773                  0x7e39...0Fda
+0xcf2C...9e7a                  0x7930...6408
       |                               |
       |---------------|---------------|
                       v
@@ -26,6 +26,10 @@ LivingConstitution have different schemas, permissions and decision semantics.
 A new monolithic contract would require migrating append-only histories and
 would replace already-audited deployments. Oracle by Plain3rd instead provides one wallet
 session, common finality language and a single searchable record.
+
+Both complete contract projects now live in this repository under
+`components/evidence` and `components/governance`. “Separate contracts” means
+separate on-chain responsibilities, not separate submission repositories.
 
 ## Browser-to-chain flow
 

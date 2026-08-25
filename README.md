@@ -1,25 +1,36 @@
 # Oracle by Plain3rd
 
-Oracle by Plain3rd is one product made from two linked GenLayer StudioNet
-contracts:
+Oracle by Plain3rd is one GenLayer product with two cooperating engines:
 
-1. **Evidence** resolves a sourced YES, NO, or UNCLEAR question.
-2. **Governance** uses one or more resolved evidence decisions when reviewing a
-   proposal against the Oracle charter.
-3. If a ballot passes, Governance asks Evidence to check whether the promised
-   result was actually delivered.
-4. The verified result is copied back into the proposal record.
+1. **Evidence** answers a sourced YES, NO, or UNCLEAR question through validator
+   consensus.
+2. **Governance** reviews a proposal against a charter using resolved Evidence,
+   then lets the proposal creator open a public ballot.
+3. When a ballot passes, Governance asks Evidence to verify whether the promised
+   result was delivered and saves that outcome on the proposal.
 
-The contracts remain separate because they have different jobs and permissions,
-but they now call each other and form one evidence-to-outcome loop. The frontend
-keeps each job on its own page:
-
-- **Evidence** asks and resolves sourced questions.
-- **Proposals** turns resolved evidence into a proposed action.
-- **Governance** reviews, votes, and verifies the outcome.
-- **Decisions** searches the combined record.
+The live interface keeps those jobs on separate pages so the workflow stays
+clear: **Evidence → Proposals → Governance → Decisions**.
 
 Live product: [https://oracle-by-plain3rd.vercel.app](https://oracle-by-plain3rd.vercel.app)
+
+## Complete submission repository
+
+This private repository now contains the full product. A reviewer only needs
+access to `Leokings/oracle-by-plain3rd`.
+
+```text
+./                              unified Oracle interface deployed on Vercel
+components/evidence/            Evidence contract, tests, docs, and source UI
+components/governance/          Governance contract, tests, registry, and source UI
+scripts/test-all.ps1            safe one-command verification of everything
+SUBMISSION.md                   reviewer and submission guide
+```
+
+Evidence was imported from the private `truthfeed` repository at commit
+`f8d0da0`. Governance was imported from the private `livingconstitution`
+repository at commit `5c1ca4b`. Those repositories remain private and unchanged
+as historical sources; this repository is the final maintained product.
 
 ## Live StudioNet configuration
 
@@ -29,28 +40,26 @@ Live product: [https://oracle-by-plain3rd.vercel.app](https://oracle-by-plain3rd
 - Governance contract: `0x793021e64B3289B291De6182A04DBF055b346408`
 - Registry API: `https://livingconstitution-nine.vercel.app`
 
-The source repositories remain private. A reviewer who needs source access must
-be invited to `Leokings/oracle-by-plain3rd`, `Leokings/truthfeed`, and
-`Leokings/livingconstitution`. The deployed V3 contract sources are in those
-invite-only repositories.
+## Easiest safe test
 
-## Local checks
+From this repository in PowerShell, run:
 
 ```powershell
-npm install
-npm run check
-npm audit --audit-level=high
-python -m http.server 8080 -d dist
+.\scripts\test-all.ps1
 ```
 
-Open `http://localhost:8080`. The build defaults to the public StudioNet
-configuration above. Local checks do not create a wallet or write on-chain.
+It lints both intelligent contracts, runs all fast contract and browser tests,
+builds all three interfaces, tests the registry backend, and audits dependencies.
+It does **not** create a wallet, deploy a contract, or write to StudioNet.
 
-For a real fresh-wallet StudioNet check, follow [TESTING.md](./TESTING.md). The
-release script creates an ephemeral account in memory and never prints or saves
-its private key.
+To test the real product with fresh empty wallets, follow
+[TESTING.md](./TESTING.md). To review the submission quickly, start with
+[SUBMISSION.md](./SUBMISSION.md).
 
-## Vercel variables
+## Vercel configuration
+
+The repository root is the Vercel production app. Its public configuration is
+generated from these Vercel variables:
 
 ```text
 GENLAYER_RPC_URL
@@ -59,17 +68,16 @@ TRUTHFEED_CONTRACT_ADDRESS
 DECISION_REGISTRY_URL
 ```
 
-These are public configuration values. No private key, mnemonic, registry token,
-or database password is shipped to the browser.
+No private key, mnemonic, registry token, or database password is shipped to
+the browser.
 
 ## Safety boundaries
 
-- Browser writes require an explicit wallet signature.
-- Transaction hashes remain available after a reload so users can refresh their
-  status.
+- Every browser write requires an explicit wallet signature.
 - Evidence and outcome sources must be public HTTPS pages.
-- Contract outcomes, citations, rule references, ballots, and verification
+- Contract decisions, citations, rule references, ballots, and verification
   records are authoritative; free-form AI rationale is explanatory.
-- The built-in ballot is one-wallet-one-vote, not identity- or token-weighted
-  governance. A treasury integration needs a separate membership and finality
-  policy.
+- The built-in ballot is one-wallet-one-vote for a public pilot. It is not a
+  token-weighted or Sybil-resistant DAO membership system.
+- A money-moving integration should require the chosen finality policy and a
+  separate membership, timelock, and execution adapter.

@@ -1,6 +1,18 @@
 # Testing Oracle by Plain3rd
 
-## Safe automated check
+## Safe whole-product check
+
+Run this one command from the Oracle repository in PowerShell:
+
+```powershell
+.\scripts\test-all.ps1
+```
+
+It verifies the unified app, both intelligent contracts, both component source
+interfaces, and the Decision Registry. It does not create a wallet or make a
+StudioNet transaction.
+
+For an interface-only check, use:
 
 ```powershell
 npm install
@@ -8,8 +20,7 @@ npm run check
 npm audit --audit-level=high
 ```
 
-This tests and builds the interface without creating a wallet or StudioNet
-transaction.
+This shorter command only tests and builds the unified interface.
 
 ## Full manual StudioNet test
 

@@ -1,6 +1,7 @@
 node_modules/
 dist/
 app.bundle.js
+.venv/
 .vercel/
 .env.local
 .env.*.local

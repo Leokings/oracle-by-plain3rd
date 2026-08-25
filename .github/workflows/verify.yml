@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  frontend:
+  oracle:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,3 +20,41 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm audit --audit-level=high
+
+  components:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Evidence
+            directory: components/evidence
+            contract: contracts/truth_feed.py
+          - name: Governance
+            directory: components/governance
+            contract: contracts/living_constitution.py
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ${{ matrix.directory }}/requirements-dev.txt
+      - working-directory: ${{ matrix.directory }}
+        run: python -m pip install -r requirements-dev.txt
+      - working-directory: ${{ matrix.directory }}
+        run: genvm-lint check ${{ matrix.contract }} --json
+      - working-directory: ${{ matrix.directory }}
+        run: python -m pytest -c pytest.ini -q -m "not integration"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ${{ matrix.directory }}/frontend/package-lock.json
+      - working-directory: ${{ matrix.directory }}/frontend
+        run: npm ci
+      - working-directory: ${{ matrix.directory }}/frontend
+        run: npm run check
+      - working-directory: ${{ matrix.directory }}/frontend
+        run: npm audit --audit-level=high
