@@ -31,6 +31,8 @@ test("gives each product job its own uncluttered page", async () => {
 
   assert.match(governance, /id="charter-list"/);
   assert.match(governance, /id="proposal-list"/);
+  assert.match(governance, /Only the Governance admin starts voting\./);
+  assert.doesNotMatch(governance, /Governance owner/);
   assert.doesNotMatch(governance, /id="truth-form"|id="proposal-form"|id="registry-list"/);
 
   assert.match(decisions, /id="registry-search"/);
