@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://studio.genlayer.com https://livingconstitution-nine.vercel.app http://localhost:* http://127.0.0.1:*; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <meta name="description" content="How TruthFeed resolves subjective questions with LLM validator consensus on GenLayer." />
+  <title>How it works — TruthFeed</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2308111a'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-family='sans-serif' fill='%2335d9f2'%3EZ%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <nav class="container nav-inner" aria-label="Main">
+      <a class="brand" href="index.html">
+        <svg class="brand-mark" width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="29" height="29" rx="8" stroke="currentColor" stroke-width="2"/>
+          <path d="M9 11h14L12.5 21H23" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="brand-name">TruthFeed</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Feed</a>
+        <a href="how-it-works.html" aria-current="page">How it works</a>
+        <a href="https://livingconstitution-nine.vercel.app/#registry">Decision Registry</a>
+      </div>
+      <div class="nav-right">
+        <span class="pill pill-live"><span class="pill-dot"></span>studionet</span>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container" id="main">
+    <section class="page-hero">
+      <h1>How TruthFeed works</h1>
+      <p>
+        TruthFeed is a subjective-question oracle deployed on GenLayer: an
+        intelligent contract that turns &ldquo;will X happen?&rdquo; into an auditable,
+        on-chain verdict reached by independent LLM validators.
+      </p>
+    </section>
+
+    <!-- ======================= What is TruthFeed ======================= -->
+    <section class="doc-section" aria-labelledby="what-title">
+      <h2 id="what-title">What is TruthFeed?</h2>
+      <div class="card doc-card">
+        <p>
+          Smart contracts can read balances and block hashes &mdash; but not the answer to
+          <strong>&ldquo;did the launch ship before March 31?&rdquo;</strong> TruthFeed closes that gap.
+          Anyone posts a yes/no question with plain-language resolution criteria and 1&ndash;5 source URLs.
+          The contract fetches those pages itself, asks a large language model to judge them against the
+          criteria, and settles a verdict of <strong>YES</strong>, <strong>NO</strong>, or
+          <strong>UNCLEAR</strong>. The outcome, cited source numbers, and a clearly labeled leader rationale are stored on-chain.
+        </p>
+        <p>
+          Once resolved, an outcome becomes reusable truth: other contracts (prediction markets,
+          parametric insurance, escrow) can read it synchronously via cross-contract views.
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================= Why validators ========================== -->
+    <section class="doc-section" aria-labelledby="why-title">
+      <h2 id="why-title">Why does a blockchain need LLM validators here?</h2>
+      <div class="card doc-card">
+        <p>
+          A chain has no trusted oracle for subjective judgment &mdash; no single node you could ask
+          &ldquo;what does this page say?&rdquo; without trusting that one node. TruthFeed instead runs its
+          prompt through <strong>GenLayer's validator consensus</strong>: one leader fetches the sources
+          and judges them with an LLM, then every validator independently re-fetches and re-judges with
+          their own model. Validators compare the outcome and canonical source citations; free-form rationale is not a consensus field. A
+          leader who keeps failing is rotated out. The result is a verdict no single party &mdash; and no
+          single LLM &mdash; could have dictated.
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================= Resolution pipeline ===================== -->
+    <section class="doc-section" aria-labelledby="flow-title">
+      <h2 id="flow-title">How a resolution flows</h2>
+      <div class="pipeline" role="list">
+        <div class="pipe-step" role="listitem">
+          <span class="pipe-num" aria-hidden="true">1</span>
+          <h3>Post</h3>
+          <p>A question + criteria + source URLs are stored on-chain via <code>create_question</code>.</p>
+        </div>
+        <div class="pipe-arrow" aria-hidden="true">&rarr;</div>
+        <div class="pipe-step" role="listitem">
+          <span class="pipe-num" aria-hidden="true">2</span>
+          <h3>Validators fetch sources</h3>
+          <p>The leader re-fetches every URL in-contract; validators do the same independently.</p>
+        </div>
+        <div class="pipe-arrow" aria-hidden="true">&rarr;</div>
+        <div class="pipe-step" role="listitem">
+          <span class="pipe-num" aria-hidden="true">3</span>
+          <h3>Each judge independently</h3>
+          <p>An LLM applies the criteria and returns outcome + source citations + a short rationale as JSON.</p>
+        </div>
+        <div class="pipe-arrow" aria-hidden="true">&rarr;</div>
+        <div class="pipe-step" role="listitem">
+          <span class="pipe-num" aria-hidden="true">4</span>
+          <h3>Equivalence principle</h3>
+          <p>Validators compare decision fields. Mismatch &rArr; disagree &rArr; leader rotates.</p>
+        </div>
+        <div class="pipe-arrow" aria-hidden="true">&rarr;</div>
+        <div class="pipe-step" role="listitem">
+          <span class="pipe-num" aria-hidden="true">5</span>
+          <h3>Outcome settles on-chain</h3>
+          <p>Validators agree on outcome + citations. The decision and its transaction finality are displayed separately, and StudioNet rechecks preserve every earlier round.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= Using this dApp ========================= -->
+    <section class="doc-section" aria-labelledby="using-title">
+      <h2 id="using-title">Using this dApp</h2>
+      <ol class="steps-list card doc-card">
+        <li><strong>Connect Wallet.</strong> Click <em>Connect Wallet</em> in the header and approve the prompt in your browser wallet (MetaMask). MetaMask auto-adds the GenLayer Studio network (chain <code>61999</code>) if it is missing &mdash; no manual setup.</li>
+        <li><strong>Get testnet GEN.</strong> Studionet is gasless-friendly &mdash; any studio test account with funds works. Top up at <a href="https://studio.genlayer.com" target="_blank" rel="noopener noreferrer">GenLayer Studio</a> if needed.</li>
+        <li><strong>Ask.</strong> Write a yes/no question, precise criteria, and 1&ndash;5 HTTPS sources. Optionally schedule the earliest resolution time.</li>
+        <li><strong>Resolve.</strong> Hit <em>Resolve</em> on any open question. Validators fetch, judge and vote &mdash; expect a short wait while consensus runs.</li>
+        <li><strong>Read the verdict.</strong> The card shows YES / NO / UNCLEAR and the consensus source numbers. The prose underneath is the leader rationale, not a consensus field.</li>
+        <li><strong>Recheck if needed.</strong> The question creator can request a new resolution after finality; every earlier decision remains in history.</li>
+      </ol>
+    </section>
+
+    <!-- ======================= For developers ========================== -->
+    <section class="doc-section" aria-labelledby="dev-title">
+      <h2 id="dev-title">For developers</h2>
+      <div class="card doc-card">
+        <p>The active contract address and RPC come from <code>config.js</code>. The upgraded source must be deployed before using the new methods below.</p>
+        <table class="methods-table">
+          <thead>
+            <tr><th>Method</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>create_question(id, text, criteria, sources_json)</code></td><td>write</td><td>Open a new question with 1&ndash;5 unique HTTPS sources.</td></tr>
+            <tr><td><code>create_question_scheduled(..., unix_time)</code></td><td>write</td><td>Open a question that cannot resolve early.</td></tr>
+            <tr><td><code>resolve_question(id)</code></td><td>write</td><td>Consensus on outcome + source citations.</td></tr>
+            <tr><td><code>reopen_question(id)</code></td><td>write</td><td>Question creator rechecks with preserved history.</td></tr>
+            <tr><td><code>void_question(id)</code></td><td>write</td><td>Question creator voids an open question.</td></tr>
+            <tr><td><code>get_question(id)</code></td><td>view</td><td>Returns one question record with parsed sources.</td></tr>
+            <tr><td><code>list_questions(offset, limit)</code></td><td>view</td><td>Paginated feed, newest last appended.</td></tr>
+            <tr><td><code>get_decision(id)</code></td><td>view</td><td>Stable downstream-integration schema.</td></tr>
+            <tr><td><code>get_stats()</code></td><td>view</td><td>Created / resolved / voided / reopened counts.</td></tr>
+          </tbody>
+        </table>
+        <div class="note-box" style="margin-top: var(--s2);">
+          <strong><code>json:</code> prefix quirk.</strong> Pass <code>sources_json</code> as a string prefixed
+          with <code>json:</code> &mdash; e.g.
+          <code>"json:" + JSON.stringify(["https://example.com"])</code>. CLI tooling auto-parses bare JSON
+          arrays into native values; the prefix keeps it a string so the contract parses it itself.
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= FAQ ===================================== -->
+    <section class="doc-section" aria-labelledby="faq-title">
+      <h2 id="faq-title">FAQ</h2>
+      <details class="faq-item">
+        <summary>What stops a malicious leader from forcing its own answer?</summary>
+        <p class="faq-body">
+          Nothing is taken from the leader on faith: every validator re-runs the same fetch-and-judge
+          pipeline and compares outcome + canonical source citations against the leader's. On disagreement the vote fails and
+          the network rotates to a new leader. A malicious leader must therefore out-vote the entire
+          committee, round after round &mdash; economically irrational by design.
+        </p>
+      </details>
+      <details class="faq-item">
+        <summary>Can outcomes change after they settle?</summary>
+        <p class="faq-body">
+          A completed decision is never overwritten. The creator can request another round, but
+          the earlier outcome, citations, rationale, and timestamp stay in the on-chain history.
+        </p>
+      </details>
+      <details class="faq-item">
+        <summary>What if a source page goes down mid-consensus?</summary>
+        <p class="faq-body">
+          Fetch failures degrade gracefully: an unavailable page is fed to the judge as
+          &ldquo;source temporarily unavailable&rdquo;, which typically yields UNCLEAR rather than a wrong
+          or crashed resolution. Transient errors are agreed on as a class, never punished.
+        </p>
+      </details>
+      <details class="faq-item">
+        <summary>Does this site ever see my private key?</summary>
+        <p class="faq-body">
+          No. Transactions are signed inside your own browser wallet (MetaMask); TruthFeed only ever
+          receives the resulting signature. The connected address is kept in this tab's sessionStorage
+          for convenience and disappears when you hit Disconnect or close the tab.
+        </p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>
+        TruthFeed on studionet &middot;
+        <button id="contract-copy" class="linklike mono" type="button"
+                data-address=""
+                title="Copy configured contract address">not configured</button>
+      </p>
+      <p class="footer-links">
+        <a href="index.html">Feed</a>
+        <a href="https://docs.genlayer.com" target="_blank" rel="noopener noreferrer">GenLayer docs</a>
+        <a href="https://github.com/genlayerlabs/genlayer-js" target="_blank" rel="noopener noreferrer">genlayer-js on GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="config.js"></script>
+  <script type="module" src="how-it-works.js"></script>
+</body>
+</html>
