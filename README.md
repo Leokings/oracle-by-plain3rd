@@ -25,14 +25,14 @@ Live product: [https://oracle-by-plain3rd.vercel.app](https://oracle-by-plain3rd
 
 - RPC: `https://studio.genlayer.com/api`
 - Chain ID: `61999`
-- Evidence contract: `0x704687cD890E636696F9362708c8832fbcC40773`
-- Governance contract: `0x7e397Abe9df988b05266d613b1c099a1458f0Fda`
+- Evidence contract: `0xcf2C42546E652A84aE5A5586707F053B6e299e7a`
+- Governance contract: `0x793021e64B3289B291De6182A04DBF055b346408`
 - Registry API: `https://livingconstitution-nine.vercel.app`
 
 The source repositories remain private. A reviewer who needs source access must
 be invited to `Leokings/oracle-by-plain3rd`, `Leokings/truthfeed`, and
-`Leokings/livingconstitution`. The deployed contract sources are TruthFeed
-commit `848302e` and LivingConstitution commit `ab2c921`.
+`Leokings/livingconstitution`. The deployed V3 contract sources are in those
+invite-only repositories.
 
 ## Local checks
 

@@ -21,12 +21,24 @@ const EXECUTION_BY_NUMBER = Object.freeze({
   2: "FINISHED_WITH_ERROR",
 });
 
+const CONSENSUS_RESULT_BY_NUMBER = Object.freeze({
+  0: "IDLE",
+  1: "AGREE",
+  2: "DISAGREE",
+  3: "TIMEOUT",
+  4: "DETERMINISTIC_VIOLATION",
+  5: "NO_MAJORITY",
+  6: "MAJORITY_AGREE",
+  7: "MAJORITY_DISAGREE",
+});
+
 const DEFAULT_SUCCESS_STATUSES = new Set(["ACCEPTED", "READY_TO_FINALIZE", "FINALIZED"]);
 const EXECUTION_ALIASES = Object.freeze({
   SUCCESS: "FINISHED_WITH_RETURN",
   ERROR: "FINISHED_WITH_ERROR",
   CONTRACT_ERROR: "FINISHED_WITH_ERROR",
 });
+const CONSENSUS_RESULT_NAMES = new Set(Object.values(CONSENSUS_RESULT_BY_NUMBER));
 
 function normalizeEnum(value, numberMap) {
   if (value === undefined || value === null || value === "") return "";
@@ -62,6 +74,22 @@ export function receiptExecutionName(receipt) {
     const value = leader?.execution_result_name ?? leader?.execution_result;
     const leaderResult = normalizeExecution(value);
     if (leaderResult) return leaderResult;
+  }
+  return "";
+}
+
+export function receiptConsensusResultName(receipt) {
+  const explicit =
+    receipt?.resultName ??
+    receipt?.result_name ??
+    receipt?.transactionResultName ??
+    receipt?.transaction_result_name;
+  const named = normalizeEnum(explicit, CONSENSUS_RESULT_BY_NUMBER);
+  if (CONSENSUS_RESULT_NAMES.has(named)) return named;
+
+  const raw = receipt?.result;
+  if (typeof raw === "number" || /^\d+$/.test(String(raw ?? ""))) {
+    return CONSENSUS_RESULT_BY_NUMBER[Number(raw)] || "";
   }
   return "";
 }
@@ -103,6 +131,11 @@ export function receiptFailure(receipt, allowedStatuses = DEFAULT_SUCCESS_STATUS
   if (!status) return "Transaction receipt is missing its consensus status.";
   if (!allowedStatuses.has(status)) {
     return `Consensus status is ${status}, not an accepted/finalized success state.`;
+  }
+
+  const consensusResult = receiptConsensusResultName(receipt);
+  if (consensusResult && consensusResult !== "MAJORITY_AGREE") {
+    return `Validators did not approve this execution (consensus result: ${consensusResult}).`;
   }
 
   const execution = receiptExecutionName(receipt);

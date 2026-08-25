@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   isConfiguredAddress,
   isConfiguredRpcUrl,
+  receiptConsensusResultName,
   receiptExecutionName,
   receiptFailure,
   receiptStatusName,
@@ -20,6 +21,17 @@ test("normalizes numeric GenLayer receipt enums", () => {
 test("supports snake_case SDK receipt fields", () => {
   assert.equal(
     receiptFailure({ status_name: "FINALIZED", tx_execution_result_name: "FINISHED_WITH_RETURN" }),
+    null,
+  );
+});
+
+test("accepts a raw Studio majority-agree receipt", () => {
+  assert.equal(
+    receiptFailure({
+      status: 7,
+      result: 6,
+      consensus_data: { leader_receipt: [{ execution_result: "SUCCESS" }] },
+    }),
     null,
   );
 });
@@ -53,6 +65,13 @@ test("does not confuse consensus acceptance with execution success", () => {
 
 test("rejects failed consensus states and invalid deployment config", () => {
   assert.match(receiptFailure({ status: 8, txExecutionResult: 1 }), /CANCELED/);
+  const undeterminedExecution = {
+    status_name: "FINALIZED",
+    result: 7,
+    consensus_data: { leader_receipt: [{ execution_result: "SUCCESS" }] },
+  };
+  assert.equal(receiptConsensusResultName(undeterminedExecution), "MAJORITY_DISAGREE");
+  assert.match(receiptFailure(undeterminedExecution), /Validators did not approve/);
   assert.equal(isConfiguredAddress("0x1111111111111111111111111111111111111111"), true);
   assert.equal(isConfiguredAddress("YOUR_CONTRACT"), false);
   assert.equal(isConfiguredRpcUrl("https://studio.genlayer.com/api"), true);

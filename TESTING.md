@@ -15,11 +15,10 @@ transaction.
 
 Use three brand-new MetaMask accounts containing no real assets:
 
-- **Wallet A** votes FOR.
+- **Wallet A** creates the proposal, opens voting, and votes FOR.
 - **Wallet B** votes AGAINST.
 - **Wallet C** votes FOR.
 
-The existing Governance owner account is also needed once to open the ballot.
 StudioNet chain ID is `61999`. Replace `[RUN]` below with a unique label such
 as `0825A`.
 
@@ -142,20 +141,20 @@ cited rule and correct the next test proposal rather than forcing a ballot.
 
 ### 5. Open and vote
 
-1. Switch to the Governance owner account.
-2. Select **Open ballot**, enter quorum `3`, then enter duration `5` minutes.
-3. Switch to Wallet A and select **Vote for**.
-4. Try voting again with Wallet A. Expected: the second vote fails because one
+1. Stay connected with Wallet A, which created the proposal.
+2. Confirm the page shows the fixed policy **Quorum 3 · 5 min**.
+3. Select **Open voting**. There are no quorum or duration prompts.
+4. With Wallet A, select **Vote for**.
+5. Try voting again with Wallet A. Expected: the second vote fails because one
    wallet can vote only once.
-5. Switch to Wallet B and select **Vote against**.
-6. Switch to Wallet C and select **Vote for**.
-7. Expected tally: FOR `2`, AGAINST `1`, quorum `3`.
+6. Switch to Wallet B and select **Vote against**.
+7. Switch to Wallet C and select **Vote for**.
+8. Expected tally: FOR `2`, AGAINST `1`, quorum `3`.
 
 After five minutes, any wallet can select **Close ballot**. Expected: the ballot
 passes. Wait for that transaction to reach **FINALIZED** because the outcome
 evidence question is created by a separate finalized contract message. The
-normal duration defaults to `1440` minutes (24 hours); the short duration is for
-this StudioNet test.
+five-minute duration is the contract-wide StudioNet test policy.
 
 ### 6. Verify the outcome
 
@@ -189,9 +188,13 @@ Open **Decisions**.
   **Do not resolve before** time. Its resolve button should remain disabled
   until that time.
 - **Stale evidence protection:** create a second proposal, review it, then
-  recheck one of its linked evidence questions. Governance should label the
-  snapshot as changed and prevent the owner from opening a ballot.
-- **Owner permissions:** a normal wallet should never see **Open ballot**.
+  open voting and recheck one of its linked evidence questions. Governance
+  should hide voting, label the snapshot as changed, and let any connected
+  wallet select **Invalidate stale ballot**. The proposal creator can then
+  request a fresh review.
+- **Creator permissions:** only the wallet that submitted a compliant proposal
+  should see **Open voting** for it. The Governance admin should not see that
+  action unless it also created that proposal.
 
 ## One-command fresh-wallet smoke check
 
@@ -209,10 +212,12 @@ private key.
 ## Permissions
 
 - Any wallet can create and resolve evidence, submit and review proposals, vote
-  on an open ballot, close an expired ballot, and sync an outcome result.
-- Only an evidence creator or the Evidence owner can request its recheck.
-- Only a proposal submitter or the Governance owner can request its recheck.
-- Only the Governance owner can open a ballot.
+  on a current open ballot, close an expired ballot, invalidate a ballot whose
+  evidence changed, and sync an outcome result.
+- Only an evidence creator can request its recheck.
+- Only a proposal creator can request its recheck or open its voting.
+- The Governance admin is limited to charter administration and a recorded
+  emergency ballot cancellation; it is not part of the normal proposal flow.
 
 Oracle shows `ACCEPTED` only after it also checks the contract execution result;
 the lifecycle label by itself is not proof of successful execution. `FINALIZED`

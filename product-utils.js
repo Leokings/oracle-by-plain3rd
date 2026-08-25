@@ -1,5 +1,5 @@
-export const LIVING_KIND = "livingconstitution.proposal.v2";
-export const TRUTH_KIND = "truthfeed.question.v2";
+export const LIVING_KIND = "livingconstitution.proposal.v3";
+export const TRUTH_KIND = "truthfeed.question.v3";
 
 export function shortAddress(value) {
   const address = String(value || "");
@@ -16,11 +16,21 @@ export function walletConnectionErrorMessage(error) {
   return `Wallet connection failed: ${detail}`;
 }
 
-export function parseBallotDurationMinutes(value) {
-  const minutes = Number(value);
-  return Number.isInteger(minutes) && minutes >= 5 && minutes <= 129_600
-    ? minutes
-    : null;
+export function ballotPolicyLabel(policy) {
+  const seconds = Number(policy?.duration_seconds || 0);
+  const quorum = Number(policy?.quorum || 0);
+  if (!Number.isInteger(seconds) || seconds < 1 || !Number.isInteger(quorum) || quorum < 1) {
+    return "Voting policy unavailable";
+  }
+  let duration = `${Math.ceil(seconds / 60)} min`;
+  if (seconds % 86_400 === 0) {
+    const days = seconds / 86_400;
+    duration = `${days} ${days === 1 ? "day" : "days"}`;
+  } else if (seconds % 3_600 === 0) {
+    const hours = seconds / 3_600;
+    duration = `${hours} ${hours === 1 ? "hour" : "hours"}`;
+  }
+  return `Quorum ${quorum} · ${duration}`;
 }
 
 export function governanceBallotGuidance({
@@ -29,15 +39,19 @@ export function governanceBallotGuidance({
   ballotStatus,
   ballotClosesAt,
   connected,
-  isOwner,
   isSubmitter,
-  governanceAdmin,
+  proposalCreator,
   now = Math.floor(Date.now() / 1000),
 }) {
   const proposal = String(proposalStatus || "").toLowerCase();
   const ballot = String(ballotStatus || "").toLowerCase();
 
   if (ballot === "open") {
+    if (!evidenceCurrent) {
+      return connected
+        ? "Voting is paused because the linked evidence changed. Invalidate this ballot before requesting a new review."
+        : "Voting is paused because the linked evidence changed. Connect a wallet to invalidate this ballot.";
+    }
     if (Number(ballotClosesAt || 0) <= Number(now)) {
       return connected
         ? "Voting has ended. Close the ballot to publish its result."
@@ -53,7 +67,7 @@ export function governanceBallotGuidance({
   }
 
   if (["canceled", "cancelled"].includes(ballot)) {
-    return "This ballot was canceled. Request a proposal recheck before opening another ballot.";
+    return "This ballot was canceled. The proposal creator must request a new review before voting can reopen.";
   }
 
   if (proposal === "submitted") {
@@ -61,21 +75,20 @@ export function governanceBallotGuidance({
   }
 
   if (proposal === "compliant" && !evidenceCurrent) {
-    return "Voting is paused because the linked evidence changed. Request a new rules review.";
+    return isSubmitter
+      ? "The linked evidence changed. Request a new rules review before opening voting."
+      : "The linked evidence changed. The proposal creator must request a new rules review.";
   }
 
   if (proposal === "compliant") {
-    if (isOwner) {
-      return "Governance admin action: open voting below, then set its quorum and duration.";
-    }
-    const admin = shortAddress(governanceAdmin);
-    const adminLabel = admin ? `Governance admin ${admin}` : "The Governance admin";
     if (isSubmitter) {
-      return `You created this proposal, but only ${adminLabel} can open voting. Vote buttons appear here after it opens.`;
+      return "Creator action: open voting below. Quorum and duration are fixed by the contract.";
     }
+    const creator = shortAddress(proposalCreator);
+    const creatorLabel = creator ? `Proposal creator ${creator}` : "The proposal creator";
     return connected
-      ? `Waiting for ${adminLabel} to open voting. Vote buttons appear here after it opens.`
-      : `Voting has not opened. ${adminLabel} must start it first.`;
+      ? `Waiting for ${creatorLabel} to open voting. Vote buttons appear here after it opens.`
+      : `Voting has not opened. ${creatorLabel} must start it first.`;
   }
 
   if (proposal === "non_compliant") {

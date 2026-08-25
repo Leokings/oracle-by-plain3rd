@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  ballotPolicyLabel,
   createCaseId,
   evidenceSnapshotCurrent,
   finalityLabel,
@@ -13,7 +14,6 @@ import {
   newestFirst,
   normalizePage,
   olderPageWindow,
-  parseBallotDurationMinutes,
   shortAddress,
   splitCharter,
   slugify,
@@ -101,13 +101,10 @@ test("turns wallet provider failures into clear next steps", () => {
   );
 });
 
-test("validates owner-selected StudioNet ballot durations", () => {
-  assert.equal(parseBallotDurationMinutes("5"), 5);
-  assert.equal(parseBallotDurationMinutes("1440"), 1440);
-  assert.equal(parseBallotDurationMinutes("129600"), 129600);
-  assert.equal(parseBallotDurationMinutes("4"), null);
-  assert.equal(parseBallotDurationMinutes("5.5"), null);
-  assert.equal(parseBallotDurationMinutes("129601"), null);
+test("formats the fixed on-chain ballot policy", () => {
+  assert.equal(ballotPolicyLabel({ quorum: 3, duration_seconds: 300 }), "Quorum 3 · 5 min");
+  assert.equal(ballotPolicyLabel({ quorum: 10, duration_seconds: 86_400 }), "Quorum 10 · 1 day");
+  assert.equal(ballotPolicyLabel({}), "Voting policy unavailable");
 });
 
 test("explains every governance voting state without hiding the next action", () => {
@@ -115,21 +112,17 @@ test("explains every governance voting state without hiding the next action", ()
     proposalStatus: "compliant",
     evidenceCurrent: true,
     ballotClosesAt: 2_000,
-    governanceAdmin: "0x91B1b2D1f2De66400fcbeAEbadB8a5330eB28DC0",
+    proposalCreator: "0x5AAb9538B717De9f3380F86F00b698C79041beA7",
     now: 1_000,
   };
 
   assert.equal(
-    governanceBallotGuidance({ ...base, connected: true, isOwner: false, isSubmitter: false }),
-    "Waiting for Governance admin 0x91B1b…28DC0 to open voting. Vote buttons appear here after it opens.",
+    governanceBallotGuidance({ ...base, connected: true, isSubmitter: false }),
+    "Waiting for Proposal creator 0x5AAb9…1beA7 to open voting. Vote buttons appear here after it opens.",
   );
   assert.equal(
-    governanceBallotGuidance({ ...base, connected: true, isOwner: true }),
-    "Governance admin action: open voting below, then set its quorum and duration.",
-  );
-  assert.equal(
-    governanceBallotGuidance({ ...base, connected: true, isOwner: false, isSubmitter: true }),
-    "You created this proposal, but only Governance admin 0x91B1b…28DC0 can open voting. Vote buttons appear here after it opens.",
+    governanceBallotGuidance({ ...base, connected: true, isSubmitter: true }),
+    "Creator action: open voting below. Quorum and duration are fixed by the contract.",
   );
   assert.equal(
     governanceBallotGuidance({ ...base, ballotStatus: "open", connected: true }),
@@ -145,7 +138,11 @@ test("explains every governance voting state without hiding the next action", ()
   );
   assert.equal(
     governanceBallotGuidance({ ...base, evidenceCurrent: false, connected: true }),
-    "Voting is paused because the linked evidence changed. Request a new rules review.",
+    "The linked evidence changed. The proposal creator must request a new rules review.",
+  );
+  assert.equal(
+    governanceBallotGuidance({ ...base, ballotStatus: "open", evidenceCurrent: false, connected: true }),
+    "Voting is paused because the linked evidence changed. Invalidate this ballot before requesting a new review.",
   );
 });
 

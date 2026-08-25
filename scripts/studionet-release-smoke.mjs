@@ -5,10 +5,10 @@ import { receiptFailure } from "../tx-utils.js";
 
 const RPC_URL = "https://studio.genlayer.com/api";
 const REGISTRY_URL = "https://livingconstitution-nine.vercel.app";
-const TRUTH_ADDRESS = "0x704687cD890E636696F9362708c8832fbcC40773";
-const LIVING_ADDRESS = "0x7e397Abe9df988b05266d613b1c099a1458f0Fda";
-const TRUTH_KIND = "truthfeed.question.v2";
-const LIVING_KIND = "livingconstitution.proposal.v2";
+const TRUTH_ADDRESS = "0xcf2C42546E652A84aE5A5586707F053B6e299e7a";
+const LIVING_ADDRESS = "0x793021e64B3289B291De6182A04DBF055b346408";
+const TRUTH_KIND = "truthfeed.question.v3";
+const LIVING_KIND = "livingconstitution.proposal.v3";
 
 if (process.env.RUN_STUDIONET_SMOKE !== "1") {
   throw new Error("Set RUN_STUDIONET_SMOKE=1 to create real transactions on gasless StudioNet.");

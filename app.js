@@ -5,6 +5,7 @@ import { injectSpeedInsights } from "@vercel/speed-insights";
 import {
   LIVING_KIND,
   TRUTH_KIND,
+  ballotPolicyLabel,
   createCaseId,
   evidenceSnapshotCurrent,
   finalityLabel,
@@ -16,7 +17,6 @@ import {
   newestFirst,
   normalizePage,
   olderPageWindow,
-  parseBallotDurationMinutes,
   shortAddress,
   splitCharter,
   walletConnectionErrorMessage,
@@ -68,8 +68,6 @@ if (!IS_LOCAL) {
 
 const state = {
   wallet: null,
-  owner: "",
-  truthOwner: "",
   constitution: "",
   constitutionVersion: 0,
   questions: [],
@@ -82,6 +80,7 @@ const state = {
   proposalVisible: INITIAL_VISIBLE,
   ballots: [],
   ballotOffset: 0,
+  ballotPolicy: null,
   registry: [],
   registryWarning: "",
 };
@@ -544,6 +543,8 @@ function normalizeProposal(raw) {
     rule_refs: Array.isArray(raw?.rule_refs) ? raw.rule_refs.map(String) : [],
     review_history: Array.isArray(raw?.review_history) ? raw.review_history : [],
     review_count: Number(raw?.review_count || 0),
+    current_ballot_id: String(raw?.current_ballot_id || ""),
+    ballot_history: Array.isArray(raw?.ballot_history) ? raw.ballot_history.map(String) : [],
     evidence_ids: Array.isArray(raw?.evidence_ids) ? raw.evidence_ids.map(String) : [],
     evidence_snapshot: Array.isArray(raw?.evidence_snapshot) ? raw.evidence_snapshot : [],
     verification_question_id: String(raw?.verification_question_id || ""),
@@ -560,6 +561,7 @@ function normalizeBallot(raw) {
     id: String(raw?.id || ""),
     proposal_id: String(raw?.proposal_id || ""),
     status: String(raw?.status || "none").toLowerCase(),
+    review: Number(raw?.review || 0),
     closes_at: Number(raw?.closes_at || 0),
     quorum: Number(raw?.quorum || 0),
     votes_for: Number(raw?.votes_for || 0),
@@ -582,10 +584,7 @@ async function readLatestPage(address, method, total, normalizer, dateField = "c
 }
 
 async function refreshTruth() {
-  const [stats, ownership] = await Promise.all([
-    readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "get_stats"),
-    readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "get_ownership_state").catch(() => ({ owner: "" })),
-  ]);
+  const stats = await readContract(CONFIG.TRUTH_CONTRACT_ADDRESS, "get_stats");
   const page = await readLatestPage(
     CONFIG.TRUTH_CONTRACT_ADDRESS,
     "list_questions",
@@ -596,7 +595,6 @@ async function refreshTruth() {
   state.questionTotal = page.total;
   state.questionOffset = page.offset;
   state.questionVisible = INITIAL_VISIBLE;
-  state.truthOwner = String(ownership?.owner || "");
   renderEvidenceOptions();
   renderQuestions();
   renderProposals();
@@ -604,11 +602,11 @@ async function refreshTruth() {
 }
 
 async function refreshGovernance() {
-  const [constitution, version, stats, ownership] = await Promise.all([
+  const [constitution, version, stats, ballotPolicy] = await Promise.all([
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_constitution"),
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "constitution_version_count"),
     readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_stats"),
-    readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_ownership_state").catch(() => ({ owner: "" })),
+    readContract(CONFIG.LIVING_CONTRACT_ADDRESS, "get_ballot_policy").catch(() => null),
   ]);
   const [proposalPage, ballotPage] = await Promise.all([
     readLatestPage(
@@ -631,10 +629,11 @@ async function refreshGovernance() {
   state.proposalTotal = proposalPage.total;
   state.proposalOffset = proposalPage.offset;
   state.proposalVisible = INITIAL_VISIBLE;
-  state.owner = String(ownership?.owner || "");
+  state.ballotPolicy = ballotPolicy;
   state.ballots = ballotPage.items.filter((item) => isProductionRecordId(item.proposal_id));
   state.ballotOffset = ballotPage.offset;
   renderCharter();
+  renderBallotPolicy();
   renderProposals();
   renderMetrics();
 }
@@ -896,9 +895,12 @@ function renderQuestions() {
       actions.appendChild(resolveButton);
     }
     const wallet = storedWallet();
-    const canRecheck = wallet && question.status === "resolved" && [question.creator, state.truthOwner]
-      .filter(Boolean)
-      .some((address) => address.toLowerCase() === wallet.address.toLowerCase());
+    const canRecheck = Boolean(
+      wallet &&
+      question.status === "resolved" &&
+      question.creator &&
+      question.creator.toLowerCase() === wallet.address.toLowerCase()
+    );
     if (canRecheck) {
       actions.appendChild(actionButton("Request recheck", "", () => recheckQuestion(question.id)));
     }
@@ -931,8 +933,17 @@ function renderCharter() {
   articles.forEach((article) => list.appendChild(textElement("li", "", article)));
 }
 
-function currentBallot(proposalId) {
-  return state.ballots.find((ballot) => ballot.proposal_id === proposalId) || null;
+function renderBallotPolicy() {
+  const policy = $("ballot-policy");
+  if (!policy) return;
+  policy.textContent = ballotPolicyLabel(state.ballotPolicy);
+}
+
+function currentBallot(proposal) {
+  if (proposal.current_ballot_id) {
+    return state.ballots.find((ballot) => ballot.id === proposal.current_ballot_id) || null;
+  }
+  return state.ballots.find((ballot) => ballot.proposal_id === proposal.id) || null;
 }
 
 function renderProposals() {
@@ -1015,7 +1026,8 @@ function renderProposals() {
     }
     if (hasReviewDetails) card.appendChild(reviewDetails);
 
-    const ballot = currentBallot(proposal.id);
+    const storedBallot = currentBallot(proposal);
+    const ballot = storedBallot?.review === proposal.review_count ? storedBallot : null;
     if (ballot) {
       const ballotRow = document.createElement("div");
       ballotRow.className = "ballot-row";
@@ -1041,9 +1053,6 @@ function renderProposals() {
     appendFinality(card, LIVING_KIND, proposal.id);
     const now = Math.floor(Date.now() / 1000);
     const wallet = storedWallet();
-    const isOwner = Boolean(
-      wallet && state.owner && wallet.address.toLowerCase() === state.owner.toLowerCase()
-    );
     const isSubmitter = Boolean(
       wallet && proposal.submitter && wallet.address.toLowerCase() === proposal.submitter.toLowerCase()
     );
@@ -1057,9 +1066,8 @@ function renderProposals() {
           ballotStatus: ballot?.status,
           ballotClosesAt: ballot?.closes_at,
           connected: Boolean(wallet),
-          isOwner,
           isSubmitter,
-          governanceAdmin: state.owner,
+          proposalCreator: proposal.submitter,
           now,
         }),
       ),
@@ -1069,20 +1077,29 @@ function renderProposals() {
     if (proposal.status === "submitted") {
       actions.appendChild(actionButton("Run constitutional review", "action-gold", () => checkProposal(proposal.id)));
     }
-    if (proposal.status !== "submitted" && (isOwner || isSubmitter)) {
+    if (
+      proposal.status !== "submitted" &&
+      isSubmitter &&
+      (!ballot || ["canceled", "cancelled"].includes(ballot.status))
+    ) {
       actions.appendChild(actionButton("Request recheck", "", () => recheckProposal(proposal.id)));
     }
-    if (proposal.status === "compliant" && evidenceCurrent && isOwner && (!ballot || ballot.status !== "open")) {
+    if (proposal.status === "compliant" && evidenceCurrent && isSubmitter && !ballot) {
       actions.appendChild(actionButton("Open voting", "action-gold", () => openBallot(proposal.id)));
     }
-    if (ballot?.status === "open" && ballot.closes_at > now) {
+    if (ballot?.status === "open" && evidenceCurrent && ballot.closes_at > now) {
       actions.append(
         actionButton("Vote for", "action-primary", () => vote(proposal.id, true)),
         actionButton("Vote against", "", () => vote(proposal.id, false)),
       );
     }
-    if (ballot?.status === "open" && ballot.closes_at <= now) {
+    if (ballot?.status === "open" && evidenceCurrent && ballot.closes_at <= now) {
       actions.appendChild(actionButton("Close ballot", "action-gold", () => closeBallot(proposal.id)));
+    }
+    if (ballot?.status === "open" && !evidenceCurrent) {
+      actions.appendChild(
+        actionButton("Invalidate stale ballot", "action-gold", () => invalidateStaleBallot(proposal.id)),
+      );
     }
     const verificationQuestion = state.questions.find(
       (question) => question.id === proposal.verification_question_id,
@@ -1099,7 +1116,7 @@ function renderProposals() {
       );
     }
     if (
-      storedWallet() &&
+      isSubmitter &&
       ballot?.status === "closed" &&
       ballot.passed &&
       !verificationQuestion &&
@@ -1442,23 +1459,6 @@ async function recheckProposal(id) {
 }
 
 async function openBallot(id) {
-  const quorumValue = window.prompt("Minimum number of wallets required for this ballot:", "3");
-  if (quorumValue === null) return;
-  const quorum = Number(quorumValue);
-  if (!Number.isInteger(quorum) || quorum < 1 || quorum > 1_000_000) {
-    toast("error", "Quorum must be a whole number from 1 to 1,000,000.");
-    return;
-  }
-  const durationValue = window.prompt(
-    "Ballot duration in minutes (5 minimum; 1440 is 24 hours):",
-    "1440",
-  );
-  if (durationValue === null) return;
-  const durationMinutes = parseBallotDurationMinutes(durationValue);
-  if (durationMinutes === null) {
-    toast("error", "Ballot duration must be a whole number from 5 to 129,600 minutes.");
-    return;
-  }
   try {
     await executeWrite({
       address: CONFIG.LIVING_CONTRACT_ADDRESS,
@@ -1466,11 +1466,27 @@ async function openBallot(id) {
       caseId: id,
       operation: "open_ballot",
       method: "open_ballot",
-      args: [id, Math.floor(Date.now() / 1000) + durationMinutes * 60, quorum],
+      args: [id],
     });
     await Promise.all([refreshGovernance(), refreshRegistry({ fresh: true })]);
   } catch (error) {
     toast("error", `Could not open the ballot: ${errMsg(error)}`, 10000);
+  }
+}
+
+async function invalidateStaleBallot(id) {
+  try {
+    await executeWrite({
+      address: CONFIG.LIVING_CONTRACT_ADDRESS,
+      kind: LIVING_KIND,
+      caseId: id,
+      operation: "invalidate_stale_ballot",
+      method: "invalidate_stale_ballot",
+      args: [id],
+    });
+    await Promise.all([refreshGovernance(), refreshRegistry({ fresh: true })]);
+  } catch (error) {
+    toast("error", `Could not invalidate the ballot: ${errMsg(error)}`, 10000);
   }
 }
 
