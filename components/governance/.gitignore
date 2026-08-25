@@ -1,0 +1,19 @@
+frontend/config.js
+
+# Python / tooling
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+artifacts/
+.vercel/
+.env*
+
+# Node / editors / OS
+node_modules/
+frontend/dist/
+frontend/app.bundle.js
+frontend/.agents/
+frontend/skills-lock.json
+.DS_Store
+Thumbs.db

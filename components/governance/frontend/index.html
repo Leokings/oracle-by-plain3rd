@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://studio.genlayer.com http://localhost:* http://127.0.0.1:*; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'" />
+    <title>LivingConstitution — Executable DAO Governance</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2310101c'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' fill='%23e5b94f'%3E%C2%A7%3C/text%3E%3C/svg%3E" />
+    <meta name="description" content="A DAO constitution as executable natural language. LLM validators judge every proposal against the charter before it can move." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="./index.html" aria-label="LivingConstitution home">
+          <svg class="seal" viewBox="0 0 44 44" width="38" height="38" aria-hidden="true">
+            <defs>
+              <linearGradient id="goldgrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#e8c56b" />
+                <stop offset="1" stop-color="#a67c2e" />
+              </linearGradient>
+            </defs>
+            <circle cx="22" cy="22" r="20" fill="none" stroke="url(#goldgrad)" stroke-width="1.6" />
+            <circle cx="22" cy="22" r="16.4" fill="none" stroke="#5b5480" stroke-width="0.8" stroke-dasharray="2 3" />
+            <text x="22" y="28.5" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="19" font-weight="600" fill="url(#goldgrad)">§</text>
+          </svg>
+          <span class="brand-text">
+            <span class="brand-name">LivingConstitution</span>
+            <span class="brand-tag">executable governance</span>
+          </span>
+        </a>
+        <div class="topbar-links">
+          <a href="#charter">Charter</a>
+          <a href="#proposals">Proposals</a>
+          <a href="#registry">Registry</a>
+          <a href="./how-it-works.html">How it works</a>
+        </div>
+        <div class="net-pill-wrap">
+          <span class="net-pill pill-loading" id="net-pill"><span class="dot"></span><span id="net-label">connecting…</span></span>
+        </div>
+      </div>
+    </nav>
+
+    <main class="page">
+      <!-- ===================== Hero / Charter ===================== -->
+      <section class="hero" id="charter">
+        <p class="eyebrow">GenLayer intelligent contract · studionet</p>
+        <h1 class="display">The constitution that <em>enforces itself.</em></h1>
+        <p class="lede">
+          Every proposal is judged by independent LLM validators against the charter below.
+          The equivalence principle requires agreement on the verdict and cited rule references before acceptance.
+        </p>
+
+        <article class="panel charter-panel">
+          <div class="panel-head">
+            <h2><span class="h-ornament">I.</span> The Charter</h2>
+            <div class="head-chips">
+              <span class="chip-static version-chip" id="version-count">v– · – versions</span>
+              <button class="btn btn-ghost btn-sm" id="btn-toggle-history" type="button" aria-expanded="false" hidden>Version history ▾</button>
+              <button class="btn btn-ghost btn-sm" id="btn-refresh" type="button" title="Re-read contract state">↻ Refresh</button>
+            </div>
+          </div>
+          <div id="charter-skeleton" class="skeleton-block">
+            <div class="sk sk-line w80"></div>
+            <div class="sk sk-line w95"></div>
+            <div class="sk sk-line w70"></div>
+            <div class="sk sk-line w90"></div>
+          </div>
+          <ol class="articles" id="constitution-articles" hidden></ol>
+          <p class="muted" id="charter-empty" hidden>The charter is empty on-chain.</p>
+
+          <div class="history-drawer" id="history-drawer" hidden>
+            <ul class="history-list" id="history-list"></ul>
+          </div>
+        </article>
+
+        <!-- Stats strip -->
+        <div class="stats-strip" id="stats-strip" aria-live="polite">
+          <div class="stat"><span class="stat-num" id="stat-submitted">–</span><span class="stat-label">submitted</span></div>
+          <div class="stat"><span class="stat-num" id="stat-checked">–</span><span class="stat-label">checked</span></div>
+          <div class="stat stat-good"><span class="stat-num" id="stat-compliant">–</span><span class="stat-label">compliant</span></div>
+          <div class="stat stat-bad"><span class="stat-num" id="stat-noncompliant">–</span><span class="stat-label">non-compliant</span></div>
+          <div class="stat"><span class="stat-num" id="stat-needs-review">–</span><span class="stat-label">needs review</span></div>
+        </div>
+      </section>
+
+      <!-- ===================== Composer + Connection ===================== -->
+      <section class="grid-two" id="participate">
+        <!-- Connect -->
+        <article class="panel key-panel">
+          <div class="panel-head">
+            <h2><span class="h-ornament">II.</span> Connection</h2>
+            <span class="chip-static chip-owner" id="key-role-chip" hidden>signer ready</span>
+          </div>
+          <p class="panel-sub">Connect your browser wallet to sign proposals. MetaMask adds the GenLayer Studio network automatically.</p>
+          <button class="btn btn-primary btn-wide" id="btn-connect-wallet" type="button">Connect Wallet</button>
+          <div class="key-connected" id="key-connected" hidden>
+            <div class="key-addr">
+              <span class="conn-chip" id="conn-chip"><span class="dot"></span><span id="conn-mode-label">wallet</span></span>
+              <span class="muted">acting as</span>
+              <code id="key-address">0x…</code>
+              <button class="icon-btn" id="btn-copy-address" type="button" title="Copy address" aria-label="Copy address">⧉</button>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="btn-disconnect" type="button">Disconnect</button>
+          </div>
+          <button class="btn btn-outline btn-wide" id="btn-accept-ownership" type="button" hidden>Accept nominated ownership</button>
+        </article>
+
+        <!-- Composer -->
+        <article class="panel composer-panel">
+          <div class="panel-head">
+            <h2><span class="h-ornament">III.</span> Propose</h2>
+          </div>
+          <form id="proposal-form" novalidate>
+            <label for="input-title">Title</label>
+            <input id="input-title" type="text" placeholder="Short, descriptive title" maxlength="120" required />
+            <div class="counter"><span id="count-title">0</span>/120</div>
+
+            <label for="input-body">Body</label>
+            <textarea id="input-body" rows="7" maxlength="2000" placeholder="The full text validators will weigh against the charter. Be precise — they judge words, not intentions." required></textarea>
+            <div class="counter"><span id="count-body">0</span>/2000</div>
+
+            <div class="form-error" id="form-error" role="alert" hidden></div>
+            <button class="btn btn-primary btn-wide" id="btn-submit" type="submit">Submit proposal</button>
+            <p class="hint">Submission only registers text on-chain. Constitutional review starts when you press <strong>Check</strong>.</p>
+          </form>
+        </article>
+      </section>
+
+      <!-- ===================== Owner tools ===================== -->
+      <section class="panel owner-panel" id="owner">
+        <div class="panel-head">
+          <h2><span class="h-ornament">IV.</span> Keeper tools</h2>
+          <span class="chip-static chip-owner">OWNER</span>
+        </div>
+        <p class="panel-sub">Restricted to the contract owner. These act with whatever wallet is connected. Non-owner attempts fail gracefully at consensus.</p>
+        <div class="owner-grid">
+          <div class="owner-cell">
+            <label for="input-new-constitution">Amend charter (appends a new version)</label>
+            <textarea id="input-new-constitution" rows="4" maxlength="24000" placeholder="Full replacement text for the constitution…"></textarea>
+            <button class="btn btn-outline" id="btn-update-constitution" type="button">update_constitution</button>
+          </div>
+          <div class="owner-cell">
+            <label for="input-reset-id">Re-open a checked proposal for review</label>
+            <input id="input-reset-id" type="text" placeholder="p-xxxxxx" />
+            <button class="btn btn-outline" id="btn-reset-check" type="button">Owner force-reopen</button>
+          </div>
+          <div class="owner-cell owner-wide">
+            <label for="input-next-owner">Nominate a Safe, multisig, or DAO executor</label>
+            <input id="input-next-owner" type="text" placeholder="0x…" maxlength="42" />
+            <p class="hint">Current owner: <code id="current-owner">unknown</code> · pending: <code id="pending-owner">none</code></p>
+            <button class="btn btn-outline" id="btn-stage-ownership" type="button">Nominate new owner</button>
+            <p class="hint">Control moves only after the destination wallet accepts. Do not use this until the real governance address and signers are tested.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== Proposals ===================== -->
+      <section class="proposals-section" id="proposals">
+        <div class="proposals-bar">
+          <h2><span class="h-ornament">V.</span> The Record</h2>
+          <div class="filters" id="filters" role="group" aria-label="Filter proposals">
+            <button class="chip chip-active" data-filter="all" type="button">All</button>
+            <button class="chip" data-filter="submitted" type="button">Submitted</button>
+            <button class="chip" data-filter="compliant" type="button">Compliant</button>
+            <button class="chip" data-filter="non_compliant" type="button">Non-compliant</button>
+            <button class="chip" data-filter="needs_review" type="button">Needs review</button>
+          </div>
+        </div>
+
+        <div class="cards" id="cards">
+          <div class="skeleton-card"><div class="sk sk-line w60"></div><div class="sk sk-line w90"></div><div class="sk sk-line w40"></div></div>
+          <div class="skeleton-card"><div class="sk sk-line w50"></div><div class="sk sk-line w85"></div><div class="sk sk-line w70"></div></div>
+          <div class="skeleton-card"><div class="sk sk-line w65"></div><div class="sk sk-line w80"></div><div class="sk sk-line w45"></div></div>
+        </div>
+      </section>
+
+      <!-- ===================== Shared registry ===================== -->
+      <section class="panel registry-panel" id="registry">
+        <div class="panel-head">
+          <div>
+            <h2><span class="h-ornament">VI.</span> GenLayer Decision Registry</h2>
+            <p class="panel-sub">Search LivingConstitution and TruthFeed together. The index improves discovery; the GenLayer contracts remain authoritative.</p>
+          </div>
+          <div class="head-chips">
+            <span class="chip-static" id="registry-count">syncing…</span>
+            <button class="btn btn-ghost btn-sm" id="btn-registry-refresh" type="button">↻ Sync now</button>
+            <button class="btn btn-ghost btn-sm" id="btn-notifications" type="button">Enable browser updates</button>
+          </div>
+        </div>
+        <div class="registry-controls">
+          <label class="sr-only" for="registry-search">Search decisions</label>
+          <input id="registry-search" type="search" placeholder="Search case id, proposal, question, rule, or outcome…" />
+          <label class="sr-only" for="registry-kind">Decision source</label>
+          <select id="registry-kind">
+            <option value="">Both decision engines</option>
+            <option value="livingconstitution.proposal.v3">LivingConstitution</option>
+            <option value="truthfeed.question.v3">TruthFeed</option>
+          </select>
+        </div>
+        <p class="form-error" id="registry-warning" hidden></p>
+        <div class="registry-results" id="registry-results" aria-live="polite">
+          <p class="muted">Reading both GenLayer contracts…</p>
+        </div>
+        <p class="hint">StudioNet does not provide native bonded appeals. “Request recheck” is an application-level review that preserves prior rulings; finality remains a separate protocol transaction status.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <p class="footer-contract">
+          Contract <code id="footer-address">not configured</code>
+          <button class="icon-btn" id="btn-footer-copy" type="button" title="Copy address" aria-label="Copy contract address">⧉</button>
+        </p>
+        <p>Consensus decisions, application-level rechecks, and protocol transaction finality are displayed separately. <a href="./how-it-works.html">How it works →</a></p>
+      </div>
+    </footer>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <!-- Load order matters: Vercel generates config.js before app.bundle.js runs. -->
+    <script src="config.js"></script>
+    <script type="module" src="app.bundle.js"></script>
+  </body>
+</html>
